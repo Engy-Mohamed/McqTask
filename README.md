@@ -1,4 +1,3 @@
-
 <h1>Multiple Choice Exam System</h1>
 Overview
 The Multiple Choice Exam System is a web application built using ASP.NET MVC and Entity Framework Core to provide a platform for administering online exams. The system has two main roles:
