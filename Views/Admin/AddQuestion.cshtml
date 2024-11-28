@@ -1,0 +1,44 @@
+﻿@model McqTask.Models.Question
+<partial name="_NavPartial" />
+<div class="container mt-5">
+    <h2 class="mb-4">Add a New Question</h2>
+    <form asp-action="AddQuestion" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="Text" class="form-label">Question Text</label>
+            <textarea class="form-control" id="Text" name="Text" rows="3" required></textarea>
+            <div class="invalid-feedback">Please enter a question text.</div>
+        </div>
+        <div id="options-container" class="mb-3">
+            <label class="form-label">Options</label>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" name="options[]" placeholder="Option 1" required />
+                <div class="invalid-feedback">Please enter an option.</div>
+            </div>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" name="options[]" placeholder="Option 2" required />
+                <div class="invalid-feedback">Please enter an option.</div>
+            </div>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" name="options[]" placeholder="Option 3" required />
+                <div class="invalid-feedback">Please enter an option.</div>
+            </div>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" name="options[]" placeholder="Option 4" required />
+                <div class="invalid-feedback">Please enter an option.</div>
+            </div>
+        </div>
+       
+        <div class="mb-3">
+            <label for="CorrectOption" class="form-label">Correct Option Index (starting from 0)</label>
+            <input type="number" class="form-control" id="CorrectOption" name="correctOptionIndex" max="3" min="0" required />
+            <div class="invalid-feedback">Please specify the correct option index.</div>
+        </div>
+        <button type="submit" onclick="Notification()" class="btn btn-primary">Save Question</button>
+    </form>
+</div>
+
+<script>
+    function Notification() {
+        alert("Question saved successfully!");
+    }
+</script>

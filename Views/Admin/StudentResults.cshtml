@@ -1,0 +1,45 @@
+﻿@model IEnumerable<McqTask.Models.Student>
+
+@{
+    ViewData["Title"] = "Student Results";
+}
+<partial name="_NavPartial" />
+<div class="container mt-5">
+    <h2 class="text-center">Student Results</h2>
+
+    <table class="table table-bordered table-striped mt-4">
+        <thead class="thead-dark">
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Any())
+            {
+                int count = 1;
+                foreach (var student in Model)
+                {
+                    <tr>
+                        <td>@count</td>
+                        <td>@student.Name</td>
+                        <td>@student.Email</td>
+                        <td>@student.PhoneNumber</td>
+                        <td>@student.Score</td> <!-- Adjust if score is part of Results -->
+                    </tr>
+                    count++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center">No students found</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

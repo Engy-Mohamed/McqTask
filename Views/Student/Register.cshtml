@@ -1,0 +1,22 @@
+﻿<div class="container mt-5">
+    <h2 class="mb-4">Register for the Exam</h2>
+    <form asp-action="Register" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="Name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="Name" name="Name" placeholder="Your Name" required />
+            <div class="invalid-feedback">Please enter your name.</div>
+        </div>
+        <div class="mb-3">
+            <label for="Email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="Email" name="Email" placeholder="Your Email" required />
+            <div class="invalid-feedback">Please enter a valid email address.</div>
+        </div>
+        <div class="mb-3">
+            <label for="PhoneNumber" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" placeholder="Your Phone Number" required />
+            <div class="invalid-feedback">Please enter your phone number.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Start Exam</button>
+    </form>
+</div>
+
