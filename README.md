@@ -1,26 +1,84 @@
-<h1>Multiple Choice Exam System</h1>
-Overview
-The Multiple Choice Exam System is a web application built using ASP.NET MVC and Entity Framework Core to provide a platform for administering online exams. The system has two main roles:
+# Create a styled README file in HTML format
 
-Admin: Manages the system by adding multiple-choice questions and viewing students' data and results.
-Student: Registers for the exam, takes the exam, and views their results.
-This project demonstrates core concepts in MVC architecture, Entity Framework Code First, Bootstrap for styling, and dependency injection.
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Choice Exam System - README</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+        h1 {
+            text-align: center;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        code {
+            background: #e8e8e8;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        pre {
+            background: #e8e8e8;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multiple Choice Exam System</h1>
 
-Features
-Admin Functionality
-Add multiple-choice questions with options and specify the correct answer.
-View a list of students along with their scores.
-Manage questions and options.
-Student Functionality
-Register for the exam by providing their name, email, and phone number.
-Take an exam with dynamically loaded questions.
-Submit answers and view their results.
-General
-Responsive and styled using Bootstrap.
-Fully functional backend powered by ASP.NET Core MVC and Entity Framework Core.
-Technologies Used
-Backend: ASP.NET Core MVC, Entity Framework Core
-Frontend: Razor Views, HTML5, CSS, Bootstrap
-Database: SQL Server (with EF Core Code First)
-Dependency Injection: Built-in DI in ASP.NET Core
-Development Tools: Visual Studio, .NET CLI, Entity Framework CLI
+        <h2>Overview</h2>
+        <p>The <strong>Multiple Choice Exam System</strong> is a web application built using <strong>ASP.NET MVC</strong> and <strong>Entity Framework Core</strong>. It allows admins to manage exams and students to participate in them, providing a seamless and responsive interface.</p>
+
+        <h2>Features</h2>
+        <h3>Admin Functionality</h3>
+        <ul>
+            <li>Add multiple-choice questions with options and specify the correct answer.</li>
+            <li>View a list of students along with their scores.</li>
+            <li>Manage questions and options.</li>
+        </ul>
+        <h3>Student Functionality</h3>
+        <ul>
+            <li>Register for the exam by providing their name, email, and phone number.</li>
+            <li>Take an exam with dynamically loaded questions.</li>
+            <li>Submit answers and view their results.</li>
+        </ul>
+
+        <h2>Technologies Used</h2>
+        <ul>
+            <li><strong>Backend:</strong> ASP.NET Core MVC, Entity Framework Core</li>
+            <li><strong>Frontend:</strong> Razor Views, HTML5, CSS, Bootstrap</li>
+            <li><strong>Database:</strong> SQL Server (with EF Core Code First)</li>
+            <li><strong>Development Tools:</strong> Visual Studio, .NET CLI</li>
+        </ul>
+
+
