@@ -22,7 +22,8 @@ namespace McqTask.Controllers
         public IActionResult AddQuestion(Question question, List<string> options, int correctOptionIndex)
         {
             question.Options = options.Select(o => new Option { Text = o }).ToList();
-            question.CorrectOptionId = question.Options.ToList()[correctOptionIndex].Id;
+            question.CorrectOptionId = correctOptionIndex;
+            //question.CorrectOptionId = question.Options.ToList()[correctOptionIndex].Id;
 
             _context.Questions.Add(question);
             _context.SaveChanges();
