@@ -1,6 +1,7 @@
 ﻿using McqTask.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using McqTask.Helpers;
 
 namespace McqTask.Controllers
 {
@@ -23,12 +24,45 @@ namespace McqTask.Controllers
         {
             question.Options = options.Select(o => new Option { Text = o }).ToList();
             question.CorrectOptionId = correctOptionIndex;
-            //question.CorrectOptionId = question.Options.ToList()[correctOptionIndex].Id;
 
             _context.Questions.Add(question);
             _context.SaveChanges();
 
             return RedirectToAction("AddQuestion");
+        }
+
+        [HttpGet]
+        public IActionResult Uploadfile()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Upload(FileUpload model)
+        {
+            if (model.UploadedFile != null && model.UploadedFile.Length > 0)
+            {
+                // Save the file temporarily (Optional)
+                string filePath = Path.GetTempFileName();
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.UploadedFile.CopyToAsync(stream);
+                }
+
+                List<Question> questions = ExtractQuestions.ExtractQuestionsFromPdf(filePath);
+
+                // Save to database
+                _context.Questions.AddRange(questions);
+                await _context.SaveChangesAsync();
+
+                ViewBag.Message = "File uploaded and questions saved successfully!";
+            }
+            else
+            {
+                ViewBag.Message = "Please upload a valid file.";
+            }
+
+            return View();
         }
 
         public IActionResult ViewResults()
