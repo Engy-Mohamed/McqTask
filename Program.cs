@@ -13,6 +13,7 @@ namespace McqTask
             builder.Services.AddControllersWithViews();
             builder.Services.AddDbContext<ExamContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
