@@ -1,6 +1,7 @@
 ﻿using McqTask.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace McqTask.Controllers
 {
@@ -29,27 +30,84 @@ namespace McqTask.Controllers
 
         public IActionResult TakeExam(int studentId)
         {
-            var questions = _context.Questions.Include(q => q.Options).ToList();
+            var allQuestions = _context.Questions.Include(q => q.Options).ToList();
+            // Get 10 random questions
+            var randomQuestions = allQuestions.OrderBy(q => Guid.NewGuid()).Take(10).ToList();
+
+            // Store questions in session
+            HttpContext.Session.SetString("ExamQuestions", JsonSerializer.Serialize(randomQuestions.Select(q => q.Id)));
+            HttpContext.Session.SetInt32("CurrentQuestion", 0);
+
             ViewBag.StudentId = studentId;
-            return View(questions);
+            ViewBag.TotalQuestions = 10;
+            ViewBag.CurrentQuestion = 1;
+
+            return View(randomQuestions.First());
+        }
+        [HttpPost]
+        public IActionResult NavigateQuestion(int studentId, int direction, Dictionary<int, int> answers)
+        {
+            var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
+            var currentIndex = HttpContext.Session.GetInt32("CurrentQuestion").Value;
+
+            // Save current answer
+            if (answers != null && answers.Any())
+            {
+                var answersDict = HttpContext.Session.GetString("ExamAnswers") != null
+                    ? JsonSerializer.Deserialize<Dictionary<int, int>>(HttpContext.Session.GetString("ExamAnswers"))
+                    : new Dictionary<int, int>();
+
+                foreach (var answer in answers)
+                {
+                    answersDict[answer.Key] = answer.Value;
+                }
+                HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(answersDict));
+            }
+
+            // Update current question index
+            currentIndex += direction;
+            HttpContext.Session.SetInt32("CurrentQuestion", currentIndex);
+
+            if (currentIndex >= questionIds.Count)
+            {
+                return RedirectToAction("SubmitExam", new { studentId = studentId });
+            }
+
+            var question = _context.Questions
+                .Include(q => q.Options)
+                .FirstOrDefault(q => q.Id == questionIds[currentIndex]);
+
+            ViewBag.StudentId = studentId;
+            ViewBag.TotalQuestions = questionIds.Count;
+            ViewBag.CurrentQuestion = currentIndex + 1;
+
+            return View("TakeExam", question);
         }
 
         [HttpPost]
-        public IActionResult SubmitExam(int studentId, Dictionary<int, int> answers)
+        public IActionResult SubmitExam(int studentId)
         {
-            int score = 0;
+            var answers = JsonSerializer.Deserialize<Dictionary<int, int>>(
+                HttpContext.Session.GetString("ExamAnswers") ?? "{}"
+            );
 
+            int score = 0;
             foreach (var answer in answers)
             {
                 var question = _context.Questions.Find(answer.Key);
-                if (question.CorrectOptionId == answer.Value)
+                if (question != null && question.CorrectOptionId == answer.Value)
                     score++;
             }
 
             var student = _context.Students.Find(studentId);
-            student.Score = score;
+            if (student != null)
+            {
+                student.Score = score;
+                _context.SaveChanges();
+            }
 
-            _context.SaveChanges();
+            // Clear session
+            HttpContext.Session.Clear();
 
             return RedirectToAction("Result", new { studentId = studentId });
         }

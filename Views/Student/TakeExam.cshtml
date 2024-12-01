@@ -1,22 +1,48 @@
-﻿@model IEnumerable<McqTask.Models.Question>
+﻿@* Views/Student/TakeExam.cshtml *@
+@model McqTask.Models.Question
 
 <div class="container mt-5">
-    <h2 class="mb-4">Exam</h2>
-    <form asp-action="SubmitExam" method="post">
-        @foreach (var question in Model)
-        {
-            <div class="mb-4">
-                <h5>@question.Text</h5>
-                @foreach (var option in question.Options)
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar"
+             style="width: @(((ViewBag.CurrentQuestion) * 100) / ViewBag.TotalQuestions)%">
+            Question @ViewBag.CurrentQuestion of @ViewBag.TotalQuestions
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">@Model.Text</h4>
+            <form asp-action="NavigateQuestion" method="post">
+                <input type="hidden" name="studentId" value="@ViewBag.StudentId" />
+
+                @foreach (var option in Model.Options)
                 {
-                    <div class="form-check">
-                        <input type="radio" class="form-check-input" name="answers[@question.Id]" value="@option.Id" required />
+                    <div class="form-check mb-3">
+                        <input type="radio" class="form-check-input"
+                               name="answers[@Model.Id]" value="@option.Id" required />
                         <label class="form-check-label">@option.Text</label>
                     </div>
                 }
-            </div>
-        }
-        <input type="hidden" name="studentId" value="@ViewBag.StudentId" />
-        <button type="submit" class="btn btn-success">Submit</button>
-    </form>
+
+                <div class="d-flex justify-content-between mt-4">
+                    @if (ViewBag.CurrentQuestion > 1)
+                    {
+                        <button type="submit" name="direction" value="-1"
+                                class="btn btn-secondary">
+                            Previous
+                        </button>
+                    }
+                    else
+                    {
+                        <div></div>
+                    }
+
+                    <button type="submit" name="direction" value="1"
+                            class="btn btn-primary">
+                        @(ViewBag.CurrentQuestion == ViewBag.TotalQuestions ? "Submit" : "Next")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
