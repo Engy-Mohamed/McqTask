@@ -62,7 +62,7 @@ namespace McqTask.Controllers
                 ViewBag.Message = "Please upload a valid file.";
             }
 
-            return View();
+            return RedirectToAction("Uploadfile");
         }
 
         public IActionResult ViewResults()

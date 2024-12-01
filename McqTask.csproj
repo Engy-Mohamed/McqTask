@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <StartupObject>McqTask.Program</StartupObject>
+    <UserSecretsId>b50ff307-1484-4108-a00a-f8cb6d138274</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

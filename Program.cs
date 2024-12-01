@@ -13,7 +13,7 @@ namespace McqTask
             builder.Services.AddControllersWithViews();
             builder.Services.AddDbContext<ExamContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+           
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
