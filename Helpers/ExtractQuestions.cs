@@ -53,7 +53,16 @@ namespace McqTask.Helpers
             for (int i = 0; i < optionsMatches.Count; i++)
             {
                 string text = optionsMatches[i].Groups[1].Value.Trim();
-                question.CorrectOptionId = (text == correctAnswer) ? i : -1;
+
+                if (text == correctAnswer)
+                {
+                    if (question.CorrectOptionIds == null)
+                    {
+                        question.CorrectOptionIds = new List<int>();
+                    }
+                    question.CorrectOptionIds.Add(i); // Add the correct option index
+                }
+
                 question.Options.Add(new Option { Text = text });
             }
 

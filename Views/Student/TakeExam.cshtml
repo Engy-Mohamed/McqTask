@@ -18,8 +18,8 @@
                 @foreach (var option in Model.Options)
                 {
                     <div class="form-check mb-3">
-                        <input type="radio" class="form-check-input"
-                               name="answers[@Model.Id]" value="@option.Id" required />
+                        <input type="checkbox" class="form-check-input"
+                               name="answers[@Model.Id][]" value="@option.Id" @(option.IsSelected ? "checked" : "") />
                         <label class="form-check-label">@option.Text</label>
                     </div>
                 }
