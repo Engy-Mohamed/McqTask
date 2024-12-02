@@ -16,8 +16,10 @@ namespace McqTask.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Data Source=DESKTOP-6IJG1AU\\SQLEXPRESS;Initial Catalog=ExamDB;Integrated Security=True;Encrypt=False;Trust Server Certificate=True");
-            base.OnConfiguring(optionsBuilder);
+
+            // we don't need them the connection string is in appsettings.json and loaded in program.cs
+            //  optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            //base.OnConfiguring(optionsBuilder);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
