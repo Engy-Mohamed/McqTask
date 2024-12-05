@@ -19,7 +19,7 @@
                 {
                     <div class="form-check mb-3">
                         <input type="checkbox" class="form-check-input"
-                               name="answers[@Model.Id][]" value="@option.Id" @(option.IsSelected ? "checked" : "") />
+                               name="answers[@Model.Id][]" value="@option.Id" @(option.IsCorrect ? "checked" : "") />
                         <label class="form-check-label">@option.Text</label>
                     </div>
                 }

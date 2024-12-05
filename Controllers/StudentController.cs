@@ -85,7 +85,7 @@ namespace McqTask.Controllers
                 var storedAnswersDict = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(storedAnswers);
                 foreach (var option in question.Options)
                 {
-                    option.IsSelected = storedAnswersDict.ContainsKey(question.Id) &&
+                    option.IsCorrect = storedAnswersDict.ContainsKey(question.Id) &&
                                         storedAnswersDict[question.Id].Contains(option.Id);
                 }
             }
@@ -109,7 +109,7 @@ namespace McqTask.Controllers
                 var question = _context.Questions.Include(q => q.Options).FirstOrDefault(q => q.Id == answer.Key);
                 if (question != null)
                 {
-                    var correctOptions = question.Options.Where(o => o.IsSelected).Select(o => o.Id).ToList();
+                    var correctOptions = question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToList();
                     if (correctOptions.SequenceEqual(answer.Value.OrderBy(v => v)))
                     {
                         score++;

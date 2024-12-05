@@ -29,6 +29,14 @@ namespace McqTask.Models
                 .WithOne(o => o.Question)
                 .HasForeignKey(o => o.QuestionId);
 
+
+            // Configure relationship between Question and MatchingPairs
+            modelBuilder.Entity<Question>()
+                .HasMany(q => q.MatchingPairs)
+                .WithOne(mp => mp.Question)
+                .HasForeignKey(mp => mp.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             base.OnModelCreating(modelBuilder);
         }
     }
