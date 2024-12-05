@@ -45,22 +45,23 @@ namespace McqTask.Controllers
             return View(randomQuestions.First());
         }
         [HttpPost]
-        public IActionResult NavigateQuestion(int studentId, int direction, Dictionary<int, int> answers)
+        public IActionResult NavigateQuestion(int studentId, int direction, Dictionary<int, List<int>> answers)
         {
             var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
             var currentIndex = HttpContext.Session.GetInt32("CurrentQuestion").Value;
 
-            // Save current answer
+            // Save current answers
             if (answers != null && answers.Any())
             {
                 var answersDict = HttpContext.Session.GetString("ExamAnswers") != null
-                    ? JsonSerializer.Deserialize<Dictionary<int, int>>(HttpContext.Session.GetString("ExamAnswers"))
-                    : new Dictionary<int, int>();
+                    ? JsonSerializer.Deserialize<Dictionary<int, List<int>>>(HttpContext.Session.GetString("ExamAnswers"))
+                    : new Dictionary<int, List<int>>();
 
                 foreach (var answer in answers)
                 {
                     answersDict[answer.Key] = answer.Value;
                 }
+
                 HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(answersDict));
             }
 
@@ -70,12 +71,24 @@ namespace McqTask.Controllers
 
             if (currentIndex >= questionIds.Count)
             {
-                return RedirectToAction("SubmitExam", new { studentId = studentId });
+                return RedirectToAction("Result", new { studentId = studentId });
             }
 
             var question = _context.Questions
                 .Include(q => q.Options)
                 .FirstOrDefault(q => q.Id == questionIds[currentIndex]);
+
+            // Prepopulate previously selected answers
+            var storedAnswers = HttpContext.Session.GetString("ExamAnswers");
+            if (storedAnswers != null)
+            {
+                var storedAnswersDict = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(storedAnswers);
+                foreach (var option in question.Options)
+                {
+                    option.IsSelected = storedAnswersDict.ContainsKey(question.Id) &&
+                                        storedAnswersDict[question.Id].Contains(option.Id);
+                }
+            }
 
             ViewBag.StudentId = studentId;
             ViewBag.TotalQuestions = questionIds.Count;
@@ -83,20 +96,25 @@ namespace McqTask.Controllers
 
             return View("TakeExam", question);
         }
-
         [HttpPost]
         public IActionResult SubmitExam(int studentId)
         {
-            var answers = JsonSerializer.Deserialize<Dictionary<int, int>>(
+            var answers = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(
                 HttpContext.Session.GetString("ExamAnswers") ?? "{}"
             );
 
             int score = 0;
             foreach (var answer in answers)
             {
-                var question = _context.Questions.Find(answer.Key);
-                if (question != null && question.CorrectOptionId == answer.Value)
-                    score++;
+                var question = _context.Questions.Include(q => q.Options).FirstOrDefault(q => q.Id == answer.Key);
+                if (question != null)
+                {
+                    var correctOptions = question.Options.Where(o => o.IsSelected).Select(o => o.Id).ToList();
+                    if (correctOptions.SequenceEqual(answer.Value.OrderBy(v => v)))
+                    {
+                        score++;
+                    }
+                }
             }
 
             var student = _context.Students.Find(studentId);
@@ -112,6 +130,7 @@ namespace McqTask.Controllers
             return RedirectToAction("Result", new { studentId = studentId });
         }
 
+        [HttpGet]
         public IActionResult Result(int studentId)
         {
             var student = _context.Students.Find(studentId);

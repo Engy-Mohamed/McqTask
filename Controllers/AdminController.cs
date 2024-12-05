@@ -20,16 +20,17 @@ namespace McqTask.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddQuestion(Question question, List<string> options, int correctOptionIndex)
+        public IActionResult AddQuestion(Question question, List<string> options, List<int> correctOptionIndices)
         {
             question.Options = options.Select(o => new Option { Text = o }).ToList();
-            question.CorrectOptionId = correctOptionIndex;
+            question.CorrectOptionIds = correctOptionIndices; // Save multiple correct answers
 
             _context.Questions.Add(question);
             _context.SaveChanges();
 
             return RedirectToAction("AddQuestion");
         }
+
 
         [HttpGet]
         public IActionResult Uploadfile()

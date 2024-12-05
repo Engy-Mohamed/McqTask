@@ -58,12 +58,8 @@ namespace McqTask.Helpers
             for (int i = 0; i < optionsMatches.Count; i++)
             {
                 string text = optionsMatches[i].Groups[1].Value.Trim();
-                if (!string.IsNullOrEmpty(text))
-                {
-                    question.CorrectOptionId = (text == correctAnswer) ? i : question.CorrectOptionId;
-                    question.Options.Add(new Option { Text = text });
-                }
-             
+                question.CorrectOptionId = (text == correctAnswer) ? i : -1;
+                question.Options.Add(new Option { Text = text });
             }
 
             return question;
