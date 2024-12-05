@@ -4,7 +4,9 @@
     {
         public int Id { get; set; }
         public string Text { get; set; }
-        public ICollection<Option> Options { get; set; }
-        public ICollection<int> CorrectOptionIds { get; set; }
+        public string Type { get; set; } // e.g., MultipleChoice, MultipleResponse, Matching
+        public List<Option> Options { get; set; }
+        // Navigation property for matching questions
+        public List<MatchingPair> MatchingPairs { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using McqTask.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace McqTask.Migrations
 {
     [DbContext(typeof(ExamContext))]
-    partial class ExamContextModelSnapshot : ModelSnapshot
+    [Migration("20241205083302_AddNewTypeOfQuestions_Match")]
+    partial class AddNewTypeOfQuestions_Match
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,32 +39,6 @@ namespace McqTask.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Exams");
-                });
-
-            modelBuilder.Entity("McqTask.Models.MatchingPair", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("LeftSideText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RightSideText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("MatchingPair");
                 });
 
             modelBuilder.Entity("McqTask.Models.Option", b =>
@@ -145,17 +122,6 @@ namespace McqTask.Migrations
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("McqTask.Models.MatchingPair", b =>
-                {
-                    b.HasOne("McqTask.Models.Question", "Question")
-                        .WithMany("MatchingPairs")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Question");
-                });
-
             modelBuilder.Entity("McqTask.Models.Option", b =>
                 {
                     b.HasOne("McqTask.Models.Question", "Question")
@@ -190,8 +156,6 @@ namespace McqTask.Migrations
 
             modelBuilder.Entity("McqTask.Models.Question", b =>
                 {
-                    b.Navigation("MatchingPairs");
-
                     b.Navigation("Options");
                 });
 #pragma warning restore 612, 618
