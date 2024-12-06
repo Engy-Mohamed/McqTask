@@ -78,9 +78,8 @@ namespace McqTask.Helpers
             {
                 return ParseMatchingQuestion(text);
             }
-            //(?:ANS\.|Ans\.)\s*((?:\d+\..*?|\S+)(?:[\t\s].*?)*) @"ANS\.\s*((?:\d+\..*?|\S+)(?:[\t\s].*?)*)"
-            // Check for Multiple Response Questions (e.g., multiple correct answers marked as "ANS.")
-            if (Regex.IsMatch(text, @"(?:ANS\.|Ans\.)\s*((?:\d+\..*?|\S+)(?:[\t\s].*?)*)", RegexOptions.Singleline))
+            // @"(?:ANS\.|Ans\.)\s*(?:.*?\t|.*?\d+\..*)" ?:ANS\.|Ans\.)\s*(.*?)(?=\d+\..*|\t|$)
+            if (Regex.IsMatch(text, @"(?:ANS\.|Ans\.)\s*(?:.*?\t|.*?\d+\..*)", RegexOptions.Singleline))
             {
                 return ParseMultipleResponseQuestion(text);
             }
@@ -161,7 +160,7 @@ namespace McqTask.Helpers
             }
 
             // Mark the correct answers
-            var answersMatch = Regex.Match(text, @"(?:ANS\.|Ans\.)\s*((?:\d+\..*?|\S+)(?:[\t\s].*?)*)", RegexOptions.Singleline);
+            var answersMatch = Regex.Match(text, @"(?:ANS\.|Ans\.)\s*(.*?)(?=\d+\..*|\t|$)", RegexOptions.Singleline);
             if (answersMatch.Success)
             {
                 var answersText = answersMatch.Groups[1].Value;
