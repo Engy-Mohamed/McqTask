@@ -29,7 +29,7 @@ namespace McqTask.Controllers
             question.Options = options.Select((o, index) => new Option
             {
                 Text = o,
-                IsCorrect = questionType == "Multiple"
+                IsCorrect = questionType == "Multiple Response"
                     ? correctOptionIndices.Contains(index)
                     : correctOptionIndices.Contains(index) && correctOptionIndices.Count == 1
             }).ToList();
