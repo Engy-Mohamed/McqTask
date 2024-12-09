@@ -20,12 +20,21 @@ namespace McqTask.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddQuestion(Question question, List<string> options, List<int> correctOptionIndices)
+        public IActionResult AddQuestion(Question question, string questionType, List<string> options, List<int> correctOptionIndices)
         {
-            question.Options = options.Select(o => new Option { Text = o }).ToList();
-           // foreach(Option option in  )
-            //question.CorrectOptionIds = correctOptionIndices; // Save multiple correct answers
+            // Ensure the question type is stored
+            question.Type = questionType;
 
+            // Map options to the question
+            question.Options = options.Select((o, index) => new Option
+            {
+                Text = o,
+                IsCorrect = questionType == "Multiple"
+                    ? correctOptionIndices.Contains(index)
+                    : correctOptionIndices.Contains(index) && correctOptionIndices.Count == 1
+            }).ToList();
+
+            // Save the question to the database
             _context.Questions.Add(question);
             _context.SaveChanges();
 
