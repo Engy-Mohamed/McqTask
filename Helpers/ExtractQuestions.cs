@@ -31,7 +31,9 @@ namespace McqTask.Helpers
 
                     try
 
-                    { 
+                    {
+                        if (page == 311)
+                            ;
                         var question = ParseQuestion2(text);
                         if (question != null)
                         {
@@ -107,9 +109,9 @@ namespace McqTask.Helpers
             var question = new Question ();
             int NumAnswersNeeded = 1;
 
-            // Extract the question text @"(?<=\d+\s\.)[\s\S]+?\?(\s*\(Choose\s\d+\))?" @"^\d+\s?\.(.*?\?)(\s*\(?(Choose\s\w+)\)?)?"
+            // Extract the question text @"^\d+\s?\.(.*?\?)""
 
-            var questionMatch = Regex.Match(text, @"^\d+\s?\.(.*?\?)(\s*\(?(Choose\s\w+)\)?)?", RegexOptions.Singleline);// @"^\d+\s?\.(.*?\?)"
+            var questionMatch = Regex.Match(text, @"^\d+\s?\.(.*?)(?=\n[oO]\s)", RegexOptions.Singleline);// @"^\d+\s?\.(.*?\?)"
             if (questionMatch.Success)
             {
                 question.Text = questionMatch.Groups[1].Value.Trim();
@@ -151,13 +153,20 @@ namespace McqTask.Helpers
                     if (NormalizeNewlines(correctAnswer) == NormalizeNewlines(option.Text))
                     {
                         option.IsCorrect = true;
-                        correctAnswersCount += 1;
-                        continue;
+                        correctAnswersCount = 1;
+                        break;
                     }
-                    // Use regex to ensure exact matches with word boundaries
-                    string pattern = $@"\b{Regex.Escape(NormalizeNewlines(option.Text))}\b";
-                    option.IsCorrect = Regex.IsMatch(NormalizeNewlines(correctAnswer), pattern, RegexOptions.IgnoreCase);
-                    correctAnswersCount = option.IsCorrect ? correctAnswersCount + 1 : correctAnswersCount;
+                    
+                }
+                if (correctAnswersCount == 0)
+                {
+                    foreach (var option in question.Options)
+                    {
+                        // Use regex to ensure exact matches with word boundaries
+                        string pattern = $@"\b{Regex.Escape(NormalizeNewlines(option.Text))}\b";
+                        option.IsCorrect = Regex.IsMatch(NormalizeNewlines(correctAnswer), pattern, RegexOptions.IgnoreCase);
+                        correctAnswersCount = option.IsCorrect ? correctAnswersCount + 1 : correctAnswersCount;
+                    }
                 }
             }
             else
