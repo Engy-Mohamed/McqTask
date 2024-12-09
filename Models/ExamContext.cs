@@ -24,6 +24,7 @@ namespace McqTask.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configure relationship between Question and Options
             modelBuilder.Entity<Question>()
                 .HasMany(q => q.Options)
                 .WithOne(o => o.Question)
@@ -35,6 +36,13 @@ namespace McqTask.Models
                 .HasMany(q => q.MatchingPairs)
                 .WithOne(mp => mp.Question)
                 .HasForeignKey(mp => mp.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure relationship between Exam and Questions
+            modelBuilder.Entity<Question>()
+                .HasOne(q => q.Exam)
+                .WithMany(e => e.Questions)
+                .HasForeignKey(q => q.ExamId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
