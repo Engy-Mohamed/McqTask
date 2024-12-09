@@ -13,3 +13,13 @@
     </div>
     <button type="submit" class="btn btn-primary">Upload</button>
 </form>
+@if (Model != null && Model.UnparsedQuestionNumbers.Any())
+{
+    <h2>Unparsed Question Numbers</h2>
+    <ul>
+        @foreach (var questionNumber in Model.UnparsedQuestionNumbers)
+        {
+            <li>Question Number: @questionNumber</li>
+        }
+    </ul>
+}

@@ -60,20 +60,26 @@ namespace McqTask.Controllers
                     await model.UploadedFile.CopyToAsync(stream);
                 }
 
-                List<Question> questions = ExtractQuestions.ExtractQuestionsFromPdf(filePath);
+               ( List<Question> questions, List< int > UnparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromPdf(filePath);
 
                 // Save to database
                 _context.Questions.AddRange(questions);
                 await _context.SaveChangesAsync();
-
-                ViewBag.Message = "File uploaded and questions saved successfully!";
+                var fileupload = new FileUpload();
+                fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;
+            
+                return View("UploadFile", fileupload);
+                // 
+                //iewBag.Message = "File uploaded and questions saved successfully!";
             }
             else
             {
                 ViewBag.Message = "Please upload a valid file.";
             }
-
             return RedirectToAction("Uploadfile");
+            
+
+
         }
 
         public IActionResult ViewResults()
