@@ -2,6 +2,7 @@
 <div class="container mt-5">
     <h2 class="mb-4">Add a New Question</h2>
     <form asp-action="AddQuestion" method="post" class="needs-validation" novalidate>
+        <input type="hidden" name="examId" value="@ViewData["ExamId"]" />
         <div class="mb-3">
             <label for="Text" class="form-label">Question Text</label>
             <textarea class="form-control" id="Text" name="Text" rows="3" required></textarea>

@@ -1,0 +1,40 @@
+﻿@model McqTask.Models.Exam
+<div class="container mt-5">
+    <h2 class="mb-4">Manage Exam: @Model.Name</h2>
+    <h3>Questions</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Question Text</th>
+                <th>Type</th>
+                <th>Options</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var question in Model.Questions)
+            {
+                <tr>
+                    <td>@question.Text</td>
+                    <td>@question.Type</td>
+                    <td>
+                        <ul>
+                            @foreach (var option in question.Options)
+                            {
+                                <li>@option.Text (@(option.IsCorrect ? "Correct" : "Incorrect"))</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        <form asp-action="DeleteQuestion" method="post" class="d-inline">
+                            <input type="hidden" name="questionId" value="@question.Id" />
+                            <input type="hidden" name="examId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a asp-action="AddQuestion" asp-route-examId="@Model.Id" class="btn btn-primary">Add Question</a>
+</div>

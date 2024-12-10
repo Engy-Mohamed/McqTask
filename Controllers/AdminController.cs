@@ -20,8 +20,15 @@ namespace McqTask.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddQuestion(Question question, string questionType, List<string> options, List<int> correctOptionIndices)
+        public IActionResult AddQuestion(Question question, int examId, string questionType, List<string> options, List<int> correctOptionIndices)
         {
+            // Find the exam by ID
+            var exam = _context.Exams.Include(e => e.Questions).FirstOrDefault(e => e.Id == examId);
+            if (exam == null)
+            {
+                return NotFound("Exam not found.");
+            }
+
             // Ensure the question type is stored
             question.Type = questionType;
 
@@ -29,18 +36,59 @@ namespace McqTask.Controllers
             question.Options = options.Select((o, index) => new Option
             {
                 Text = o,
-                IsCorrect = questionType == "Multiple Response"
+                IsCorrect = questionType == "Multiple"
                     ? correctOptionIndices.Contains(index)
                     : correctOptionIndices.Contains(index) && correctOptionIndices.Count == 1
             }).ToList();
 
-            // Save the question to the database
-            _context.Questions.Add(question);
+            // Add question to the exam
+            exam.Questions.Add(question);
             _context.SaveChanges();
 
-            return RedirectToAction("AddQuestion");
+            return RedirectToAction("ManageExam", new { id = examId });
         }
 
+        public IActionResult AddExam()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult AddExam(Exam exam)
+        {
+            _context.Exams.Add(exam);
+            _context.SaveChanges();
+
+            return RedirectToAction("ManageExam", new { id = exam.Id });
+        }
+
+        public IActionResult ManageExam(int id)
+        {
+            var exam = _context.Exams
+                .Include(e => e.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefault(e => e.Id == id);
+
+            if (exam == null)
+            {
+                return NotFound("Exam not found.");
+            }
+
+            return View(exam);
+        }
+        
+        [HttpPost]
+        public IActionResult DeleteQuestion(int questionId, int examId)
+        {
+            var question = _context.Questions.FirstOrDefault(q => q.Id == questionId);
+            if (question != null)
+            {
+                _context.Questions.Remove(question);
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("ManageExam", new { id = examId });
+        }
 
         [HttpGet]
         public IActionResult Uploadfile()

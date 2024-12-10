@@ -1,18 +1,30 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+
 <partial name="_NavPartial" />
-<div class="text-center ">
+
+<div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <button type="button">
-        <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="AddQuestion">Add Question</a>
-    </button>
-    <button type="button">
-        <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="uploadfile">Import Questions</a>
-    </button>
-    <button type="button">
-        <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="StudentResults">Students Results</a>
-    </button>
+    <div class="button-container">
+        <button type="button">
+            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="AddQuestion">Add Question</a>
+        </button>
+        <button type="button">
+            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="uploadfile">Import Questions</a>
+        </button>
+        <button type="button">
+            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="StudentResults">Students Results</a>
+        </button>
+        <!-- New Button for Add Exam -->
+        <button type="button">
+            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="AddExam">Add Exam</a>
+        </button>
+        <!-- New Button for Manage Exam -->
+        <button type="button">
+            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="ManageExam">Manage Exam</a>
+        </button>
+    </div>
 </div>
 
 <style>
@@ -24,8 +36,12 @@
         font-size: 100px;
     }
 
+    .button-container {
+        margin-top: 30px;
+    }
+
     button {
-        margin-top: 20px;
+        margin: 10px;
         font-size: 1.5rem;
         padding: 10px 20px;
         background-color: #888;
@@ -34,13 +50,18 @@
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s ease;
-        /* text-decoration: none; */
-        &:hover
-
-    {
-        background-color: #880;
-        
     }
 
+        button:hover {
+            background-color: #880;
+        }
+
+    .nav-link {
+        color: white !important;
+        text-decoration: none;
     }
-    </style>
+
+        .nav-link:hover {
+            color: white;
+        }
+</style>
