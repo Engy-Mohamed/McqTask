@@ -30,74 +30,88 @@ namespace McqTask.Controllers
 
         public IActionResult TakeExam(int studentId)
         {
+            var numberOfQuestions = 5;
             var allQuestions = _context.Questions.Include(q => q.Options).ToList();
             // Get 10 random questions
-            var randomQuestions = allQuestions.OrderBy(q => Guid.NewGuid()).Take(10).ToList();
+            var randomQuestions = allQuestions.OrderBy(q => Guid.NewGuid()).Take(numberOfQuestions).ToList();
 
             // Store questions in session
             HttpContext.Session.SetString("ExamQuestions", JsonSerializer.Serialize(randomQuestions.Select(q => q.Id)));
             HttpContext.Session.SetInt32("CurrentQuestion", 0);
 
             ViewBag.StudentId = studentId;
-            ViewBag.TotalQuestions = 10;
+            ViewBag.TotalQuestions = numberOfQuestions;
             ViewBag.CurrentQuestion = 1;
 
             return View(randomQuestions.First());
         }
         [HttpPost]
-        public IActionResult NavigateQuestion(int studentId, int direction, Dictionary<int, List<int>> answers)
+        public IActionResult NavigateQuestion(object studentId, int direction, Dictionary<int, List<int>> answers)
         {
-            var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
-            var currentIndex = HttpContext.Session.GetInt32("CurrentQuestion").Value;
+            string studentIdString = Request.Form["studentId"]; // Getting value from hidden input field
 
-            // Save current answers
+            if (int.TryParse(studentIdString, out int parsedStudentId))
+            {
+                ;
+            }
+            else
+            {
+                // Handle other types or error if needed
+                return BadRequest("Invalid Student ID format.");
+            }
+          
+            // Retrieve question IDs and current question index from the session
+            var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
+            var currentIndex = HttpContext.Session.GetInt32("CurrentQuestion") ?? 0;
+
+            // Load existing answers from the session or initialize a new dictionary
+            var answersDict = HttpContext.Session.GetString("ExamAnswers") != null
+                ? JsonSerializer.Deserialize<Dictionary<int, List<int>>>(HttpContext.Session.GetString("ExamAnswers"))
+                : new Dictionary<int, List<int>>();
+
+            // Save current answers if provided
             if (answers != null && answers.Any())
             {
-                var answersDict = HttpContext.Session.GetString("ExamAnswers") != null
-                    ? JsonSerializer.Deserialize<Dictionary<int, List<int>>>(HttpContext.Session.GetString("ExamAnswers"))
-                    : new Dictionary<int, List<int>>();
-
                 foreach (var answer in answers)
                 {
-                    answersDict[answer.Key] = answer.Value;
+                    answersDict[answer.Key] = answer.Value; // Add or update answers
                 }
-
                 HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(answersDict));
             }
 
-            // Update current question index
+            // Update current question index based on direction
             currentIndex += direction;
             HttpContext.Session.SetInt32("CurrentQuestion", currentIndex);
 
+            // Handle exam submission if the last question is reached
             if (currentIndex >= questionIds.Count)
             {
-                return RedirectToAction("Result", new { studentId = studentId });
+                return SubmitExam(parsedStudentId);
             }
 
+            // Fetch the next question and its options
             var question = _context.Questions
                 .Include(q => q.Options)
                 .FirstOrDefault(q => q.Id == questionIds[currentIndex]);
 
-            // Prepopulate previously selected answers
-            var storedAnswers = HttpContext.Session.GetString("ExamAnswers");
-            if (storedAnswers != null)
+            if (question == null)
             {
-                var storedAnswersDict = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(storedAnswers);
-                foreach (var option in question.Options)
-                {
-                    option.IsCorrect = storedAnswersDict.ContainsKey(question.Id) &&
-                                        storedAnswersDict[question.Id].Contains(option.Id);
-                }
+                return NotFound("Question not found.");
             }
 
-            ViewBag.StudentId = studentId;
+            // Set ViewBag properties for rendering
+            ViewBag.StudentId = parsedStudentId;
             ViewBag.TotalQuestions = questionIds.Count;
             ViewBag.CurrentQuestion = currentIndex + 1;
 
+            // Pass stored answers to the view for pre-selection
+            ViewBag.SelectedAnswers = answersDict.ContainsKey(question.Id) ? answersDict[question.Id] : new List<int>();
+
             return View("TakeExam", question);
         }
-        [HttpPost]
-        public IActionResult SubmitExam(int studentId)
+
+
+        public IActionResult SubmitExam(int? studentId)
         {
             var answers = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(
                 HttpContext.Session.GetString("ExamAnswers") ?? "{}"

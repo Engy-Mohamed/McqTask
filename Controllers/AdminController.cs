@@ -99,6 +99,9 @@ namespace McqTask.Controllers
         [HttpPost]
         public async Task<IActionResult> Upload(FileUpload model)
         {
+            var exam = new Exam();
+            exam.Name = "Exam 2";
+
             if (model.UploadedFile != null && model.UploadedFile.Length > 0)
             {
                 // Save the file temporarily (Optional)
@@ -109,9 +112,10 @@ namespace McqTask.Controllers
                 }
 
                ( List<Question> questions, List< int > UnparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromPdf(filePath);
-
+                exam.Questions = questions;
                 // Save to database
-                _context.Questions.AddRange(questions);
+                // _context.Questions.AddRange(questions);
+                _context.Exams.Add(exam);
                 await _context.SaveChangesAsync();
                 var fileupload = new FileUpload();
                 fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;
