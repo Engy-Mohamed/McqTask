@@ -10,9 +10,9 @@ namespace McqTask.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            //migrationBuilder.DropColumn(
-            //    name: "CorrectOptionId",
-            //    table: "Questions");
+            migrationBuilder.DropColumn(
+                name: "CorrectOptionId",
+                table: "Questions");
 
             migrationBuilder.AddColumn<string>(
                 name: "Type",
