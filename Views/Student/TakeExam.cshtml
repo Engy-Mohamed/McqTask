@@ -193,6 +193,17 @@
             cursor: move;
         }
 
+        /* Change color of items when at rest */
+#left-side-list li, #right-side-list li {
+    background-color: #007bff; /* Blue when at rest */
+    color: white; /* Optional: Adjust text color to contrast with the blue background */
+}
+
+/* Change color of items when being dragged */
+#left-side-list li.ui-sortable-helper, #right-side-list li.ui-sortable-helper {
+    background-color: #0056b3; /* Darker blue when being dragged */
+}
+
         /* Placeholder for when dragging */
         .sortable-placeholder {
             background-color: #e9e9e9;
