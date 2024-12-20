@@ -1,7 +1,10 @@
 ﻿using McqTask.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace McqTask.Controllers
 {
@@ -48,13 +51,49 @@ namespace McqTask.Controllers
         }
         [HttpPost]
         //public IActionResult NavigateQuestion(int? studentId, int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)
-        public IActionResult NavigateQuestion( int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)
+        public IActionResult NavigateQuestion(int studentId, int direction, [FromForm] IFormCollection form)
         {
             string studentIdString = Request.Form["studentId"];
-       
- 
+            Dictionary<int, Dictionary<int, int>>? matchingAnswers = new Dictionary<int, Dictionary<int, int>>();
+
+            var matchingansers = form["matchingAnswers"];
+            Dictionary<int, List<int>>? answers = new Dictionary<int, List<int>>();
+            foreach (var key in form.Keys.Where(k => k.StartsWith("matchingAnswers[")))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(key, @"matchingAnswers\[(\d+)\]\[(\d+)\]");
+                if (match.Success)
+                {
+                    int outerKey = int.Parse(match.Groups[1].Value);
+                    int innerKey = int.Parse(match.Groups[2].Value);
+                    int value = int.Parse(form[key]);
+
+                    if (!matchingAnswers.ContainsKey(outerKey))
+                    {
+                        matchingAnswers[outerKey] = new Dictionary<int, int>();
+                    }
+                    matchingAnswers[outerKey][innerKey] = value;
+                }
+            }
+
+            foreach (var key in form.Keys)
+            {
+                if (key.StartsWith("answers["))
+                {
+                    var match = Regex.Match(key, @"answers\[(\d+)\]");
+                    if (match.Success)
+                    {
+                        int outerKey = int.Parse(match.Groups[1].Value);
+                        int value = int.Parse(form[key]);
+                        if (!answers.ContainsKey(outerKey))
+                        {
+                            answers[outerKey] = new List<int>();
+                        }
+                        answers[outerKey].Add(value);
+                    }
+                }
+            }
             // Getting value from hidden input field
-           
+
 
             if (int.TryParse(studentIdString, out int parsedStudentId))
             {
@@ -74,6 +113,9 @@ namespace McqTask.Controllers
             var answersDict = HttpContext.Session.GetString("ExamAnswers") != null
                 ? JsonSerializer.Deserialize<Dictionary<int, List<int>>>(HttpContext.Session.GetString("ExamAnswers"))
                 : new Dictionary<int, List<int>>();
+            var MatchingAnswersDict = HttpContext.Session.GetString("ExamMatchingAnswers") != null
+                ? JsonSerializer.Deserialize<Dictionary<int, Dictionary<int, int>>>(HttpContext.Session.GetString("ExamMatchingAnswers"))
+                : new Dictionary<int, Dictionary<int, int>>();
 
             // Save current answers if provided
             if (answers != null && answers.Any())
@@ -83,6 +125,14 @@ namespace McqTask.Controllers
                     answersDict[answer.Key] = answer.Value; // Add or update answers
                 }
                 HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(answersDict));
+            }
+            if (matchingAnswers != null && matchingAnswers.Any())
+            {
+                foreach (var matchingAnswer in matchingAnswers)
+                {
+                    MatchingAnswersDict[matchingAnswer.Key] = matchingAnswer.Value; // Add or update answers
+                }
+                HttpContext.Session.SetString("ExamMatchingAnswers", JsonSerializer.Serialize(MatchingAnswersDict));
             }
 
             // Update current question index based on direction
@@ -115,6 +165,10 @@ namespace McqTask.Controllers
                 ? new Dictionary<int, List<int>> { { question.Id, answersDict[question.Id] } }
                 : new Dictionary<int, List<int>> { { question.Id, new List<int>() } };
 
+            ViewBag.SelectedMatchingAnswers = MatchingAnswersDict.ContainsKey(question.Id)
+                ? new Dictionary<int, Dictionary<int,int>> { { question.Id, MatchingAnswersDict[question.Id] } }
+                : new Dictionary<int, Dictionary<int, int>> { { question.Id, new Dictionary<int, int>() } };
+
             return View("TakeExam", question);
         }
 
@@ -124,6 +178,9 @@ namespace McqTask.Controllers
             var answers = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(
                 HttpContext.Session.GetString("ExamAnswers") ?? "{}"
             );
+            var matchingAnswers = JsonSerializer.Deserialize<Dictionary<int, Dictionary<int,int>>>(
+               HttpContext.Session.GetString("ExamMatchingAnswers") ?? "{}"
+           );
 
             int score = 0;
            // need modifications
@@ -138,6 +195,23 @@ namespace McqTask.Controllers
                         score++;
                     }
                 }
+            }
+            foreach (var answer in matchingAnswers)
+            {
+                bool rightAnswer = true;
+                foreach(var matchPair in answer.Value)
+                {
+                    if(matchPair.Key != matchPair.Value)
+                    {
+                        rightAnswer = false;
+                        break;
+                    }
+                }
+                if (rightAnswer)
+                {
+                    score++;
+                }
+               
             }
 
             var student = _context.Students.Find(studentId);

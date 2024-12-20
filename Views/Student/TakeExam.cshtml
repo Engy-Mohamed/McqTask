@@ -1,9 +1,11 @@
 ﻿@* Views/Student/TakeExam.cshtml *@
 @model McqTask.Models.Question
 @{
-    var storedAnswers = ViewBag.SelectedAnswers as Dictionary<int, object> ?? new Dictionary<int, object>();
-    // var storedAnswers = ViewBag.SelectedAnswers as Dictionary<int, List<int>> ?? new Dictionary<int, List<int>>();
-    // Declare variables for reordered items
+   
+    var storedAnswers = ViewBag.SelectedAnswers as Dictionary<int, List<int>> ?? new Dictionary<int, List<int>>();
+    var storedMatchingAnswers = ViewBag.SelectedMatchingAnswers as Dictionary<int, Dictionary<int, int>> ?? new Dictionary<int, Dictionary<int, int>>();
+
+
     var reorderedItems_left = new List<MatchingPair>();
     var reorderedItems_right = new List<MatchingPair>();
 
@@ -51,11 +53,11 @@
                 }
                 else
                 {
-                    var issaved = storedAnswers.ContainsKey(Model.Id);
+                    var issaved = storedMatchingAnswers.ContainsKey(Model.Id) && storedMatchingAnswers[Model.Id].Count != 0;
                     if (issaved)
                     {
-                        var leftOrder = ((Dictionary<int, int>)storedAnswers[Model.Id]).Keys.ToList();
-                        var rightOrder = ((Dictionary<int, int>)storedAnswers[Model.Id]).Values.ToList();
+                        var leftOrder = storedMatchingAnswers[Model.Id].Keys.ToList();
+                        var rightOrder = storedMatchingAnswers[Model.Id].Values.ToList();
                         reorderedItems_left = leftOrder
                        .Select(id => Model.MatchingPairs.First(pair => pair.Id == id))
                        .ToList();
