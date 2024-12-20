@@ -1,12 +1,18 @@
 ﻿@* Views/Student/TakeExam.cshtml *@
 @model McqTask.Models.Question
 @{
-    var storedAnswers = ViewBag.SelectedAnswers as  List<int> ?? new List<int>();
+    var storedAnswers = ViewBag.SelectedAnswers as Dictionary<int, object> ?? new Dictionary<int, object>();
+    // var storedAnswers = ViewBag.SelectedAnswers as Dictionary<int, List<int>> ?? new Dictionary<int, List<int>>();
+    // Declare variables for reordered items
+    var reorderedItems_left = new List<MatchingPair>();
+    var reorderedItems_right = new List<MatchingPair>();
+
+
 }
 <div class="container mt-5">
     <div class="progress mb-4">
         <div class="progress-bar" role="progressbar"
-             style="width: @(((ViewBag.CurrentQuestion) * 100) / ViewBag.TotalQuestions)%">
+        style="width: @(((ViewBag.CurrentQuestion) * 100) / ViewBag.TotalQuestions)%">
             Question @ViewBag.CurrentQuestion of @ViewBag.TotalQuestions
         </div>
     </div>
@@ -14,33 +20,95 @@
     <div class="card">
         <div class="card-body">
             <h4 class="card-title mb-4">@Model.Text</h4>
+            <span>@ViewBag.StudentId</span>
             <form asp-action="NavigateQuestion" method="post">
                 <input type="hidden" name="studentId" value="@ViewBag.StudentId" />
-                
+
                 @if (Model.Type == "Multiple Response")
                 {
                     @foreach (var option in Model.Options)
                     {
-                        var isChecked =  storedAnswers.Contains(option.Id);
+                        //var isChecked =  storedAnswers.Contains(option.Id);
+                        var isChecked = storedAnswers.ContainsKey(Model.Id) && ((List<int>)storedAnswers[Model.Id]).Contains(option.Id);
                         <div class="form-check mb-3">
                             <input type="checkbox" class="form-check-input"
-                                   name="answers[@Model.Id][]" value="@option.Id" @(isChecked ? "checked" : "") />
+                            name="answers[@Model.Id][]" value="@option.Id" @(isChecked ? "checked" : "") />
+                            <label class="form-check-label">@option.Text</label>
+                        </div>
+                    }
+                }
+                else if (Model.Type == "Multiple Choice")
+                {
+                    @foreach (var option in Model.Options)
+                    {
+                        var isChecked = storedAnswers.ContainsKey(Model.Id) && ((List<int>)storedAnswers[Model.Id]).Contains(option.Id);
+                        <div class="form-check mb-3">
+                            <input type="radio" class="form-check-input"
+                            name="answers[@Model.Id]" value="@option.Id" @(isChecked ? "checked" : "") />
                             <label class="form-check-label">@option.Text</label>
                         </div>
                     }
                 }
                 else
                 {
-                    @foreach (var option in Model.Options)
+                    var issaved = storedAnswers.ContainsKey(Model.Id);
+                    if (issaved)
                     {
-                        var isChecked = storedAnswers.Contains(option.Id);
-                        <div class="form-check mb-3">
-                            <input type="radio" class="form-check-input"
-                                   name="answers[@Model.Id]" value="@option.Id" @(isChecked ? "checked" : "") />
-                            <label class="form-check-label">@option.Text</label>
-                        </div>
+                        var leftOrder = ((Dictionary<int, int>)storedAnswers[Model.Id]).Keys.ToList();
+                        var rightOrder = ((Dictionary<int, int>)storedAnswers[Model.Id]).Values.ToList();
+                        reorderedItems_left = leftOrder
+                       .Select(id => Model.MatchingPairs.First(pair => pair.Id == id))
+                       .ToList();
+                        reorderedItems_right = rightOrder
+                       .Select(id => Model.MatchingPairs.First(pair => pair.Id == id))
+                       .ToList();
                     }
+                    else
+                    {
+                        reorderedItems_left = Model.MatchingPairs.OrderBy(item => item.LeftSideText).ToList();
+                        reorderedItems_right = Model.MatchingPairs.OrderBy(item => item.RightSideText).ToList();
+                    }
+                    <div class="matching-container">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Left Side (Drag to reorder)</th>
+                                    <th>Right Side (Drag to reorder)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="left-side">
+                                        <ul id="left-side-list" class="connectedSortable">
+
+                                            @foreach (var pair in reorderedItems_left)
+                                            {
+                                                <li class="draggable-item" data-id="@pair.Id" id="left-@pair.Id">
+                                                    @pair.LeftSideText
+                                                </li>
+                                            }
+                                        </ul>
+                                    </td>
+                                    <td class="right-side">
+                                        <ul id="right-side-list" class="connectedSortable">
+                                            @foreach (var pair in reorderedItems_right)
+                                            {
+                                                <li class="draggable-item" data-id="@pair.Id" id="right-@pair.Id">
+                                                    @pair.RightSideText
+                                                </li>
+                                            }
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                
+                           
+                   
                 }
+                
 
                 <div class="d-flex justify-content-between mt-4">
                     @if (ViewBag.CurrentQuestion > 1)
@@ -64,3 +132,76 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Enable reordering of left side (without cross-dragging)
+            $("#left-side-list").sortable({
+                connectWith: ".connectedSortable",
+                placeholder: "sortable-placeholder",
+                update: function (event, ui) {
+                    updateMatchingPairs();
+                }
+            });
+
+            // Enable reordering of right side (without cross-dragging)
+            $("#right-side-list").sortable({
+                connectWith: ".connectedSortable",
+                placeholder: "sortable-placeholder",
+                update: function (event, ui) {
+                    updateMatchingPairs();
+                }
+            });
+
+            // Prevent items from being dragged between the lists
+            $("#left-side-list").sortable("option", "connectWith", "#left-side-list");
+            $("#right-side-list").sortable("option", "connectWith", "#right-side-list");
+
+            // Function to update the matching pairs after reordering
+            function updateMatchingPairs() {
+                var leftOrder = $("#left-side-list").sortable("toArray");
+                var rightOrder = $("#right-side-list").sortable("toArray");
+
+                // Clear any previous hidden fields (if they exist)
+               
+                $("input[type='hidden']").not("input[name='studentId']").remove();
+
+                // Create hidden input fields to store the updated order
+                $.each(leftOrder, function (index, item) {
+                    var itemId = item.replace("left-", "");
+                    var hiddenInput = $("<input>")
+                        .attr("type", "hidden")
+                        .attr("name", "matchingAnswers[@Model.Id][" + itemId + "]")
+                        .val(rightOrder[index].replace("right-", ""));
+                    $("form").append(hiddenInput);
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* Styling for draggable items */
+        .draggable-item {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            cursor: move;
+        }
+
+        /* Placeholder for when dragging */
+        .sortable-placeholder {
+            background-color: #e9e9e9;
+            border: 1px dashed #ccc;
+            height: 40px;
+        }
+
+        /* Connected sortable list (for both left and right sides) */
+        #left-side-list, #right-side-list {
+            list-style: none;
+            padding-left: 0;
+        }
+    </style>
+}

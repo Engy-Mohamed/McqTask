@@ -31,7 +31,8 @@ namespace McqTask.Controllers
         public IActionResult TakeExam(int studentId)
         {
             var numberOfQuestions = 5;
-            var allQuestions = _context.Questions.Include(q => q.Options).ToList();
+            //get matching pairs +options
+            var allQuestions = _context.Questions.Include(q => q.Options).Include(q=>q.MatchingPairs).ToList();
             // Get 10 random questions
             var randomQuestions = allQuestions.OrderBy(q => Guid.NewGuid()).Take(numberOfQuestions).ToList();
 
@@ -46,9 +47,14 @@ namespace McqTask.Controllers
             return View(randomQuestions.First());
         }
         [HttpPost]
-        public IActionResult NavigateQuestion(object studentId, int direction, Dictionary<int, List<int>> answers)
+        //public IActionResult NavigateQuestion(int? studentId, int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)
+        public IActionResult NavigateQuestion( int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)
         {
-            string studentIdString = Request.Form["studentId"]; // Getting value from hidden input field
+            string studentIdString = Request.Form["studentId"];
+       
+ 
+            // Getting value from hidden input field
+           
 
             if (int.TryParse(studentIdString, out int parsedStudentId))
             {
@@ -91,7 +97,7 @@ namespace McqTask.Controllers
 
             // Fetch the next question and its options
             var question = _context.Questions
-                .Include(q => q.Options)
+                .Include(q => q.Options).Include(q => q.MatchingPairs)
                 .FirstOrDefault(q => q.Id == questionIds[currentIndex]);
 
             if (question == null)
@@ -105,7 +111,9 @@ namespace McqTask.Controllers
             ViewBag.CurrentQuestion = currentIndex + 1;
 
             // Pass stored answers to the view for pre-selection
-            ViewBag.SelectedAnswers = answersDict.ContainsKey(question.Id) ? answersDict[question.Id] : new List<int>();
+            ViewBag.SelectedAnswers = answersDict.ContainsKey(question.Id)
+                ? new Dictionary<int, List<int>> { { question.Id, answersDict[question.Id] } }
+                : new Dictionary<int, List<int>> { { question.Id, new List<int>() } };
 
             return View("TakeExam", question);
         }
@@ -118,6 +126,7 @@ namespace McqTask.Controllers
             );
 
             int score = 0;
+           // need modifications
             foreach (var answer in answers)
             {
                 var question = _context.Questions.Include(q => q.Options).FirstOrDefault(q => q.Id == answer.Key);
