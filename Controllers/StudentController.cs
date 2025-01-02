@@ -51,7 +51,7 @@ namespace McqTask.Controllers
         }
         [HttpPost]
         //public IActionResult NavigateQuestion(int? studentId, int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)
-        public IActionResult NavigateQuestion(int studentId, int direction, [FromForm] IFormCollection form)
+        public IActionResult NavigateQuestion(int studentId, int direction,int question_no, [FromForm] IFormCollection form)
         {
             string studentIdString = Request.Form["studentId"];
             Dictionary<int, Dictionary<int, int>>? matchingAnswers = new Dictionary<int, Dictionary<int, int>>();
@@ -136,7 +136,14 @@ namespace McqTask.Controllers
             }
 
             // Update current question index based on direction
-            currentIndex += direction;
+            if (direction != null && direction !=0)
+            {
+                currentIndex += direction;
+            }
+            else
+            {
+                currentIndex = question_no-1;
+            }
             HttpContext.Session.SetInt32("CurrentQuestion", currentIndex);
 
             // Handle exam submission if the last question is reached
