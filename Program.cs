@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using McqTask.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +14,7 @@ namespace McqTask
             builder.Services.AddControllersWithViews();
             builder.Services.AddDbContext<ExamContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+            
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -29,7 +30,20 @@ namespace McqTask
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            else
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            app.Use(async (context, next) =>
+            {
+                var identity = new ClaimsIdentity(new[] {
+                new Claim(ClaimTypes.Name, "John Doe"),
+                new Claim(ClaimTypes.Email, "john.doe@example.com"),
+            }, "TestAuth");
 
+                context.User = new ClaimsPrincipal(identity);
+                await next.Invoke();
+            });
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

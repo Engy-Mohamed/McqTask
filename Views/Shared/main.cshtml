@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    @RenderSection("Head", required: false)
+</head>
+
+<body class="nav-md">
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="@Url.Action("Index", "Home")" class="site_title">
+                            <i class="fa fa-graduation-cap"></i>
+                            <span>Exam System Admin</span>
+                        </a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <!-- menu profile quick info -->
+                    
+                    <!-- /menu profile quick info -->
+
+                    <br />
+
+                    <!-- sidebar menu -->
+                    @Html.Partial("Includes/SidebarMenu")
+                    <!-- /sidebar menu -->
+
+                    <!-- /menu footer buttons -->
+                    @Html.Partial("MenuFooterButtons")
+                    <!-- /menu footer buttons -->
+                </div>
+            </div>
+
+            <!-- top navigation -->
+            @Html.Partial("TopNav")
+            <!-- /top navigation -->
+
+            @RenderBody()
+
+            <!-- footer content -->
+            @Html.Partial("Footer")
+            <!-- /footer content -->
+        </div>
+    </div>
+    @RenderSection("JavaLib", required: false)
+
+</body>
+</html>

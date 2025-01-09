@@ -9,6 +9,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Views\Admin\add_category.cshtml" />
+    <Content Remove="Views\Shared\alert.cshtml" />
+    <Content Remove="Views\Shared\head.cshtml" />
+    <Content Remove="Views\Shared\head2.cshtml" />
+    <Content Remove="Views\Shared\includes\head.cshtml" />
+    <Content Remove="Views\Shared\includes\header.cshtml" />
+    <Content Remove="Views\Shared\includes\js_lib.blade.cshtml" />
+    <Content Remove="Views\Shared\JavaLib.cshtml" />
+    <Content Remove="Views\Shared\javascript_libs2.cshtml" />
+    <Content Remove="Views\Shared\main.cshtml" />
+    <Content Remove="Views\Shared\MenuFooterButtons.cshtml" />
+    <Content Remove="Views\Shared\MenuProfileQuickInfo.cshtml" />
+    <Content Remove="Views\Shared\SidebarMenu.cshtml" />
+    <Content Remove="Views\Shared\TopNav.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Views\Admin\add_category.cshtml" />
+    <None Include="Views\Shared\alert.cshtml" />
+    <None Include="Views\Shared\head.cshtml" />
+    <None Include="Views\Shared\head2.cshtml" />
+    <None Include="Views\Shared\JavaLib.cshtml" />
+    <None Include="Views\Shared\javascript_libs2.cshtml" />
+    <None Include="Views\Shared\main.cshtml" />
+    <None Include="Views\Shared\MenuFooterButtons.cshtml" />
+    <None Include="Views\Shared\MenuProfileQuickInfo.cshtml" />
+    <None Include="Views\Shared\SidebarMenu.cshtml" />
+    <None Include="Views\Shared\TopNav.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="itext" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
@@ -21,6 +52,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="ServiceStack.Interfaces" Version="8.5.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Shared\includes\" />
   </ItemGroup>
 
 </Project>
