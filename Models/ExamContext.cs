@@ -13,6 +13,10 @@ namespace McqTask.Models
         public DbSet<Question> Questions { get; set; }
         public DbSet<Option> Options { get; set; }
         public DbSet<Exam> Exams { get; set; }
+        public DbSet<MatchingPair> MatchingPairs { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<ResultRecord> ResultRecords { get; set; }
+        public DbSet<Group> Groups { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -24,11 +28,40 @@ namespace McqTask.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configure relationship between Group and Students
+            modelBuilder.Entity<ResultRecord>()
+                .HasOne(q => q.Student)
+                .WithMany(e => e.ResultRecords)
+                .HasForeignKey(q => q.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ResultRecord>()
+            .HasOne(q => q.Exam)
+            .WithMany(e => e.ResultRecords)
+            .HasForeignKey(q => q.ExamId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+            // Configure relationship between category and Exams
+            modelBuilder.Entity<Exam>()
+                .HasOne(q => q.Category)
+                .WithMany(e => e.Exams)
+                .HasForeignKey(q => q.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure relationship between Group and Students
+            modelBuilder.Entity<Student>()
+                .HasOne(q => q.Group)
+                .WithMany(e => e.Students)
+                .HasForeignKey(q => q.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configure relationship between Question and Options
             modelBuilder.Entity<Question>()
                 .HasMany(q => q.Options)
                 .WithOne(o => o.Question)
-                .HasForeignKey(o => o.QuestionId);
+                .HasForeignKey(o => o.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade); ;
 
 
             // Configure relationship between Question and MatchingPairs

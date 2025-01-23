@@ -4,6 +4,7 @@ using McqTask.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace McqTask.Migrations
 {
     [DbContext(typeof(ExamContext))]
-    partial class ExamContextModelSnapshot : ModelSnapshot
+    [Migration("20250114202317_new_schema")]
+    partial class new_schema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,7 +39,7 @@ namespace McqTask.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category");
                 });
 
             modelBuilder.Entity("McqTask.Models.Exam", b =>
@@ -53,6 +56,9 @@ namespace McqTask.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ExamId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -60,6 +66,8 @@ namespace McqTask.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("ExamId");
 
                     b.ToTable("Exams");
                 });
@@ -78,7 +86,7 @@ namespace McqTask.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Groups");
+                    b.ToTable("Group");
                 });
 
             modelBuilder.Entity("McqTask.Models.MatchingPair", b =>
@@ -104,7 +112,7 @@ namespace McqTask.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("MatchingPairs");
+                    b.ToTable("MatchingPair");
                 });
 
             modelBuilder.Entity("McqTask.Models.Option", b =>
@@ -181,7 +189,7 @@ namespace McqTask.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("ResultRecords");
+                    b.ToTable("ResultRecord");
                 });
 
             modelBuilder.Entity("McqTask.Models.Student", b =>
@@ -194,6 +202,9 @@ namespace McqTask.Migrations
 
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ExamId")
+                        .HasColumnType("int");
 
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
@@ -209,6 +220,8 @@ namespace McqTask.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExamId");
+
                     b.HasIndex("GroupId");
 
                     b.ToTable("Students");
@@ -221,6 +234,10 @@ namespace McqTask.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("McqTask.Models.Exam", null)
+                        .WithMany("Exams")
+                        .HasForeignKey("ExamId");
 
                     b.Navigation("Category");
                 });
@@ -261,7 +278,7 @@ namespace McqTask.Migrations
             modelBuilder.Entity("McqTask.Models.ResultRecord", b =>
                 {
                     b.HasOne("McqTask.Models.Exam", "Exam")
-                        .WithMany("ResultRecords")
+                        .WithMany()
                         .HasForeignKey("ExamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -279,6 +296,10 @@ namespace McqTask.Migrations
 
             modelBuilder.Entity("McqTask.Models.Student", b =>
                 {
+                    b.HasOne("McqTask.Models.Exam", null)
+                        .WithMany("Students")
+                        .HasForeignKey("ExamId");
+
                     b.HasOne("McqTask.Models.Group", "Group")
                         .WithMany("Students")
                         .HasForeignKey("GroupId")
@@ -295,9 +316,11 @@ namespace McqTask.Migrations
 
             modelBuilder.Entity("McqTask.Models.Exam", b =>
                 {
+                    b.Navigation("Exams");
+
                     b.Navigation("Questions");
 
-                    b.Navigation("ResultRecords");
+                    b.Navigation("Students");
                 });
 
             modelBuilder.Entity("McqTask.Models.Group", b =>

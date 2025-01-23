@@ -1,7 +1,9 @@
 @{
+
+    var alertType = "";
     if (ViewBag.Message != null)
     {
-        var alertType = ViewBag.AlertType ?? "alert-info"; // Default to 'alert-info' if not set
+        alertType = ViewBag.AlertType ?? "alert-info"; // Default to 'alert-info' if not set
     }
 }
 

@@ -2,12 +2,10 @@
 <html lang="en">
 
 <head>
-    @await Html.PartialAsync("head")
+    @RenderSection("Head", required: true)
 </head>
 
-<body>
-    
-    <div class="container">
+<body class="nav-md">
         <div class="container body">
             <div class="main_container">
                 <div class="col-md-3 left_col">
@@ -39,25 +37,16 @@
                 <!-- top navigation -->
                 @await Html.PartialAsync("TopNav")
                 <!-- /top navigation -->
-                @RenderBody()
+                @RenderSection("content", required: true)
 
                 <!-- footer content -->
-              
+                @await Html.PartialAsync("footer")
                 <!-- /footer content -->
             </div>
         </div>
-       
-    </div>
+  
+    @RenderSection("JavaLib", required: true)
+    @RenderSection("Scripts", required: false)
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            All Rights Reserved &copy; 2024 - Egyptian Engineers Syndicate.
-        </div>
-    </footer>
-    @await Html.PartialAsync("JavaLib")
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

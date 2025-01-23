@@ -1,6 +1,8 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using McqTask.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using McqTask.Data;
 
 namespace McqTask
 {
@@ -9,6 +11,8 @@ namespace McqTask
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddDbContext<McqTaskContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("McqTaskContext") ?? throw new InvalidOperationException("Connection string 'McqTaskContext' not found.")));
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -37,8 +41,8 @@ namespace McqTask
             app.Use(async (context, next) =>
             {
                 var identity = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.Name, "John Doe"),
-                new Claim(ClaimTypes.Email, "john.doe@example.com"),
+                new Claim(ClaimTypes.Name, "Engy Mohamed"),
+                new Claim(ClaimTypes.Email, "engy.moh@example.com"),
             }, "TestAuth");
 
                 context.User = new ClaimsPrincipal(identity);

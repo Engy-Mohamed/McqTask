@@ -1,8 +1,10 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
-<partial name="_NavPartial" />
+@section Head {
+    @Html.Partial("head") // Include the head partial
+}
+@section content {
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
@@ -26,42 +28,9 @@
         </button>
     </div>
 </div>
+}
+@section javaLib {
+    @Html.Partial("javaLib") // 
+}
 
-<style>
-    .container {
-        max-width: 100%;
-    }
 
-    .display-4 {
-        font-size: 100px;
-    }
-
-    .button-container {
-        margin-top: 30px;
-    }
-
-    button {
-        margin: 10px;
-        font-size: 1.5rem;
-        padding: 10px 20px;
-        background-color: #888;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-        button:hover {
-            background-color: #880;
-        }
-
-    .nav-link {
-        color: white !important;
-        text-decoration: none;
-    }
-
-        .nav-link:hover {
-            color: white;
-        }
-</style>

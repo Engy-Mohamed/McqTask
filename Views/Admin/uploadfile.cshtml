@@ -3,7 +3,10 @@
 @{
     ViewBag.Title = "Upload File";
 }
-
+@section Head {
+    @Html.Partial("head") // Include the head partial
+}
+@section content {
 <h2>Upload File</h2>
 
 <form asp-action="Upload" asp-controller="Admin" method="post" enctype="multipart/form-data">
@@ -22,4 +25,8 @@
             <li>Question Number: @questionNumber</li>
         }
     </ul>
+}
+}
+@section javaLib {
+    @Html.Partial("javaLib") //
 }

@@ -99,8 +99,12 @@ namespace McqTask.Controllers
         [HttpPost]
         public async Task<IActionResult> Upload(FileUpload model)
         {
+            var category = new Category();
+            category.Name = "pmp";
+            category.Exams = new List<Exam>();
             var exam = new Exam();
             exam.Name = "Exam 2";
+            
 
             if (model.UploadedFile != null && model.UploadedFile.Length > 0)
             {
@@ -115,7 +119,8 @@ namespace McqTask.Controllers
                 exam.Questions = questions;
                 // Save to database
                 // _context.Questions.AddRange(questions);
-                _context.Exams.Add(exam);
+                category.Exams.Add(exam);
+                _context.Categories.Add(category);
                 await _context.SaveChangesAsync();
                 var fileupload = new FileUpload();
                 fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;
