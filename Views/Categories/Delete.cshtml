@@ -34,5 +34,7 @@
 }
 @section javaLib {
     @Html.Partial("javascript_libs2") // Include the head partial
-
+    @{
+        await Html.RenderPartialAsync("javaLib");
+    }
 }
