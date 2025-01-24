@@ -4,7 +4,7 @@
     ViewData["Title"] = "Create";
 }
 @section Head {
-    @Html.Partial("head2") // Include the head partial
+    @Html.Partial("head2") 
 }
 @section content
 {
@@ -85,5 +85,6 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
 @section javaLib {
-    @Html.Partial("javascript_libs2") // Include the head partial
+	@{await Html.RenderPartialAsync("javascript_libs2");} 
+    @{await Html.RenderPartialAsync("javaLib");}
 }

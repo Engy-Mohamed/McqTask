@@ -56,6 +56,7 @@ namespace McqTask.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
         {
+            category.Exams = new List<Exam>();
             if (ModelState.IsValid)
             {
                 _context.Add(category);
