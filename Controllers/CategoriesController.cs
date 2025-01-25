@@ -5,16 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using McqTask.Data;
 using McqTask.Models;
 
 namespace McqTask.Controllers
 {
     public class CategoriesController : Controller
     {
-        private readonly McqTaskContext _context;
+        private readonly ExamContext _context;
 
-        public CategoriesController(McqTaskContext context)
+        public CategoriesController(ExamContext context)
         {
             _context = context;
         }

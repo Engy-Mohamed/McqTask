@@ -1,5 +1,8 @@
-﻿namespace McqTask.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace McqTask.Models
 {
+    [Table("Exams")]
     public class Exam
     {
         public int Id { get; set; }

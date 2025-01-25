@@ -120,7 +120,7 @@ namespace McqTask.Controllers
                 // Save to database
                 // _context.Questions.AddRange(questions);
                 category.Exams.Add(exam);
-                _context.Categories.Add(category);
+                _context.Category.Add(category);
                 await _context.SaveChangesAsync();
                 var fileupload = new FileUpload();
                 fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;

@@ -36,7 +36,7 @@ namespace McqTask.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("categories");
                 });
 
             modelBuilder.Entity("McqTask.Models.Exam", b =>
@@ -79,6 +79,13 @@ namespace McqTask.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Default"
+                        });
                 });
 
             modelBuilder.Entity("McqTask.Models.MatchingPair", b =>

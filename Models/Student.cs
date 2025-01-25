@@ -1,6 +1,8 @@
-﻿using ServiceStack.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using ServiceStack.DataAnnotations;
 namespace McqTask.Models
 {
+    [Table("Students")]
     public class Student
     {
         public int Id { get; set; }

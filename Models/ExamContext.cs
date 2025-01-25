@@ -1,31 +1,28 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.EntityFrameworkCore;
 
 namespace McqTask.Models
 {
+
     public class ExamContext : DbContext
     {
         public ExamContext(DbContextOptions<ExamContext> options) : base(options)
         {
         }
+
+        public DbSet<Category> Category { get; set; } = default!;
         public DbSet<Student> Students { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Option> Options { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<MatchingPair> MatchingPairs { get; set; }
-        public DbSet<Category> Categories { get; set; }
         public DbSet<ResultRecord> ResultRecords { get; set; }
         public DbSet<Group> Groups { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-
-            // we don't need them the connection string is in appsettings.json and loaded in program.cs
-            //  optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            //base.OnConfiguring(optionsBuilder);
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure relationship between Group and Students
@@ -56,20 +53,21 @@ namespace McqTask.Models
                 .HasForeignKey(q => q.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure relationship between Question and Options
-            modelBuilder.Entity<Question>()
-                .HasMany(q => q.Options)
-                .WithOne(o => o.Question)
-                .HasForeignKey(o => o.QuestionId)
-                .OnDelete(DeleteBehavior.Cascade); ;
+            modelBuilder.Entity<MatchingPair>()
+               .HasOne(q => q.Question)
+               .WithMany(e => e.MatchingPairs)
+               .HasForeignKey(q => q.QuestionId)
+               .OnDelete(DeleteBehavior.Cascade);
 
 
-            // Configure relationship between Question and MatchingPairs
-            modelBuilder.Entity<Question>()
-                .HasMany(q => q.MatchingPairs)
-                .WithOne(mp => mp.Question)
-                .HasForeignKey(mp => mp.QuestionId)
-                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Option>()
+               .HasOne(q => q.Question)
+               .WithMany(e => e.Options)
+               .HasForeignKey(q => q.QuestionId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+
 
             // Configure relationship between Exam and Questions
             modelBuilder.Entity<Question>()
@@ -77,6 +75,14 @@ namespace McqTask.Models
                 .WithMany(e => e.Questions)
                 .HasForeignKey(q => q.ExamId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Seed Groups
+            modelBuilder.Entity<Group>().HasData(
+                new Group { Id = 1, Name = "Default" }
+           
+            );
+
+     
 
             base.OnModelCreating(modelBuilder);
         }

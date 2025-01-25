@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\McqTask\" />
     <Folder Include="Views\Shared\includes\" />
   </ItemGroup>
 

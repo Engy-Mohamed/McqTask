@@ -2,7 +2,7 @@
 using McqTask.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using McqTask.Data;
+
 
 namespace McqTask
 {
@@ -11,7 +11,7 @@ namespace McqTask
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddDbContext<McqTaskContext>(options =>
+            builder.Services.AddDbContext<ExamContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("McqTaskContext") ?? throw new InvalidOperationException("Connection string 'McqTaskContext' not found.")));
 
             // Add services to the container.

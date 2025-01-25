@@ -25,6 +25,7 @@ namespace McqTask.Controllers
         [HttpPost]
         public IActionResult Register(Student student)
         {
+            student.GroupId = 1;
             _context.Students.Add(student);
             _context.SaveChanges();
 
