@@ -47,7 +47,7 @@ namespace McqTask.Controllers
         // GET: Students/Create
         public IActionResult Create()
         {
-            ViewData["GroupId"] = new SelectList(_context.Groups, "Id", "Id");
+            ViewData["Group"] = new SelectList(_context.Groups, "Id", "Name");
             return View();
         }
 
@@ -64,7 +64,7 @@ namespace McqTask.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["GroupId"] = new SelectList(_context.Groups, "Id", "Id", student.GroupId);
+            ViewData["Group"] = new SelectList(_context.Groups, "Id", "Name", student.GroupId);
             return View(student);
         }
 
@@ -81,7 +81,7 @@ namespace McqTask.Controllers
             {
                 return NotFound();
             }
-            ViewData["GroupId"] = new SelectList(_context.Groups, "Id", "Id", student.GroupId);
+            ViewData["Group"] = new SelectList(_context.Groups, "Id", "Name", student.GroupId);
             return View(student);
         }
 
@@ -117,7 +117,7 @@ namespace McqTask.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["GroupId"] = new SelectList(_context.Groups, "Id", "Id", student.GroupId);
+            ViewData["Group"] = new SelectList(_context.Groups, "Id", "Name", student.GroupId);
             return View(student);
         }
 

@@ -15,7 +15,7 @@ namespace McqTask.Helpers
     public static class ExtractQuestions
     {
         
-        public static (List<Question>, List<int> UnparsedQuestionNumbers) ExtractQuestionsFromPdf(string pdfPath)
+        public static (List<Question>, List<int> UnparsedQuestionNumbers) ExtractQuestionsFromPdf(string pdfPath, bool IsAnswerWithDot)
         {
             var questions = new List<Question>();
             var unparsedQuestionNumbers = new List<int>();
@@ -33,7 +33,7 @@ namespace McqTask.Helpers
 
                     {
                         
-                        var question = ParseQuestion2(text);
+                        var question = ParseQuestion(text, IsAnswerWithDot);
                         if (question != null)
                         {
                             questions.Add(question);
@@ -53,49 +53,13 @@ namespace McqTask.Helpers
             return (questions, unparsedQuestionNumbers);
         }
        
-        public static Question ParseQuestion(string pageText)
+       
+
+        public static Question ParseQuestion(string text, bool IsAnswerWithDot)
         {
-            bool ISAnswerWithDot = false;
+         
             string dot_pattern = "";
-            var question = new Question();
-            question.Options = new List<Option>();
-
-
-            // Extract question using regex @"\d+\.\s(.*?)(?=\n[oO])" @"\d+\.\s(.*?)(?=\n[oO]\s)"  @"(?<=\d+\.\s)(.*?)(?=\?)"
-
-            string questionPattern = @"^\d+\s?\.(.*?\?)";//@"^\d+\.\s(.*?)(?=\?)"
-            Match questionMatch = Regex.Match(pageText, questionPattern, RegexOptions.Singleline);
-            question.Text = questionMatch.Success ? questionMatch.Groups[1].Value.Trim() : "Question not found";
-
-            // Extract options using regex  @"[oO]\s(.*?)(?=\n|$)" @"(?<=\n)[oO]\s(.*?)(?=\n|$)"
-
-            if (ISAnswerWithDot)
-                dot_pattern = @"\.";
-
-            string optionsPattern = @"(?<=\n)[oO]\s+(.*?)(?=\n[oO]\s|ANS"+ dot_pattern + @")";
-
-            MatchCollection optionsMatches = Regex.Matches(pageText, optionsPattern, RegexOptions.Singleline);
-
-            // Extract answer using regex
-            string answerPattern = @"ANS"+ dot_pattern + @"\s(.*)";// @"ANS\.\s(.*)";
-            Match answerMatch = Regex.Match(pageText, answerPattern, RegexOptions.Singleline);
-            string correctAnswer = answerMatch.Success ? answerMatch.Groups[1].Value.Trim() : "Answer not found";
-           // question.CorrectOptionId = -1;
-            for (int i = 0; i < optionsMatches.Count; i++)
-            {
-                string text = optionsMatches[i].Groups[1].Value.Trim();
-                //question.CorrectOptionId = (text == correctAnswer) ? i : -1;
-                question.Options.Add(new Option { Text = text });
-            }
-
-            return question;
-        }
-
-        public static Question ParseQuestion2(string text)
-        {
-            bool ISAnswerWithDot = false;
-            string dot_pattern = "";
-            if (ISAnswerWithDot)
+            if (IsAnswerWithDot)
                 dot_pattern = @"\.";
             // Check for Matching Questions (e.g., "ANS. Trend analysis = Forecast performance based on results")
             if (Regex.IsMatch(text, @"(?i)ANS"+ dot_pattern + @"\s*(.*?=.*?)", RegexOptions.Singleline))

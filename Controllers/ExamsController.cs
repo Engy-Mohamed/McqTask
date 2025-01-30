@@ -81,7 +81,7 @@ namespace McqTask.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Id", exam.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", exam.Category);
             return View(exam);
         }
 
