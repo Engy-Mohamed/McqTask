@@ -25,6 +25,10 @@ namespace McqTask.Models
         public DbSet<Group> Groups { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Group>().HasData(
+                 new Group { Id = 2, Name = "Default" });
+
             // Configure relationship between Group and Students
             modelBuilder.Entity<ResultRecord>()
                 .HasOne(q => q.Student)
@@ -84,7 +88,7 @@ namespace McqTask.Models
 
      
 
-            base.OnModelCreating(modelBuilder);
+  
         }
     }
 }

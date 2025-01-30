@@ -63,7 +63,7 @@
                         </button>
 
                     <h4 class="card-title mb-4">@Model.Text</h4>
-                @if (Model.Type == "Multiple Response")
+                        @if (Model.Type == QuestionType.MultipleResponse)
                 {
                     @foreach (var option in Model.Options)
                     {
@@ -76,7 +76,7 @@
                         </div>
                     }
                 }
-                else if (Model.Type == "Multiple Choice")
+                        else if (Model.Type == QuestionType.MultipleChoice)
                 {
                     @foreach (var option in Model.Options)
                     {

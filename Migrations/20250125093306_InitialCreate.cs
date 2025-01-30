@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace McqTask.Migrations
 {
     /// <inheritdoc />
@@ -88,7 +90,7 @@ namespace McqTask.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     ExamId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -174,7 +176,11 @@ namespace McqTask.Migrations
             migrationBuilder.InsertData(
                 table: "Groups",
                 columns: new[] { "Id", "Name" },
-                values: new object[] { 1, "Default" });
+                values: new object[,]
+                {
+                    { 1, "Default" },
+                    { 2, "Default" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Exams_CategoryId",

@@ -180,9 +180,9 @@ namespace McqTask.Helpers
                 return null;
             
             if (correctAnswersCount > 1)
-                question.Type = "Multiple Response";
+                question.Type = QuestionType.MultipleResponse;
             else if (correctAnswersCount == 1)
-                question.Type = "Multiple Choice";
+                question.Type = QuestionType.MultipleChoice;
             else
                 return null;
             if (NumAnswersNeeded == correctAnswersCount)
@@ -193,7 +193,7 @@ namespace McqTask.Helpers
 
         private static Question ParseMultipleResponseQuestion(string text, string dot_pattern)
         {
-            var question = new Question { Type = "MultipleResponse" };
+            var question = new Question { Type = QuestionType.MultipleResponse};
 
             // Extract the question text
             var questionMatch = Regex.Match(text, @"^\d+\s?\.(.*?\?)", RegexOptions.Singleline);
@@ -243,7 +243,7 @@ namespace McqTask.Helpers
        
         private static Question ParseMatchingQuestion(string text, string dot_pattern)
         {
-            var question = new Question { Type = "Matching" };
+            var question = new Question { Type = QuestionType.Matching };
             question.Text = "Match the scenario on the left with the action on the\r\nright.";
             question.MatchingPairs = new List<MatchingPair>();
 
@@ -278,7 +278,7 @@ namespace McqTask.Helpers
                 {
                     Id = int.Parse(questionMatch.Groups["Id"].Value),
                     Text = questionMatch.Groups["Text"].Value.Trim(),
-                    Type = "Matching",
+                    Type = QuestionType.Matching,
                     Options = new List<Option>(),
                     MatchingPairs = new List<MatchingPair>()
                 };

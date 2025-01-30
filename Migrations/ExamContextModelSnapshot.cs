@@ -83,6 +83,11 @@ namespace McqTask.Migrations
                     b.HasData(
                         new
                         {
+                            Id = 2,
+                            Name = "Default"
+                        },
+                        new
+                        {
                             Id = 1,
                             Name = "Default"
                         });
@@ -154,9 +159,8 @@ namespace McqTask.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

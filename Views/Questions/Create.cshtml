@@ -1,10 +1,11 @@
-﻿@model McqTask.Models.Category
+﻿@model McqTask.Models.QuestionViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Create";
 }
+
 @section Head {
-    @Html.Partial("head2") // Include the head partial
+	@Html.Partial("head2")
 }
 @section content
 {
@@ -13,7 +14,7 @@
 		<div class="">
 			<div class="page-title">
 				<div class="title_left">
-					<h3>Manage Categories</h3>
+					<h3>Manage Questions</h3>
 				</div>
 
 				<div class="title_right">
@@ -32,8 +33,9 @@
 				<div class="col-md-12 col-sm-12 ">
 					<div class="x_panel">
 						<div class="x_title">
+
 							@Html.Partial("alert")
-							<h2>Edit Category</h2>
+							<h2>Add Question</h2>
 							<ul class="nav navbar-right panel_toolbox">
 								<li>
 									<a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
@@ -57,47 +59,59 @@
 						</div>
 						<div class="x_content">
 							<br />
-							<form asp-action="Edit">
+							<form asp-action="Create" id="questionForm">
 								<div asp-validation-summary="ModelOnly" class="text-danger"></div>
-								<input type="hidden" asp-for="Id" />
-								<div class="form-group mb-3 row">
-									<label class="col-form-label col-md-3 col-sm-3 label-align" asp-for="Name">
-										Edit Category <span class="required">*</span>
-									</label>
-									<div class="col-md-6 col-sm-6 ">
-										<input type="text" id="add-category" required="required" class="form-control " asp-for="Name" >
-										<span asp-validation-for="Name" class="text-danger"></span>
-									</div>
+								<div class="form-group">
+									<label asp-for="ExamId" class="control-label"></label>
+									<select asp-for="ExamId" class="form-control" asp-items="ViewBag.ExamData"></select>
 								</div>
-								<div class="ln_solid"></div>
-								<div class="form-group mb-3 row">
-									<div class="col-md-6 col-sm-6 offset-md-3">
-										<button class="btn btn-primary" type="button">Cancel</button>
-										<button type="submit" class="btn btn-success">Update</button>
-									</div>
+								<div class="form-group">
+									<label asp-for="Text" class="control-label"></label>
+									<input asp-for="Text" class="form-control" />
+									<span asp-validation-for="Text" class="text-danger"></span>
 								</div>
-
+								<div class="form-group">
+									<label for="Type">Question Type</label>
+									<select asp-for="Type" asp-items="ViewBag.QuestionTypes"></select>
+								</div>
+							
+								<div class="form-group">
+									<label>Number of Options / Pairs</label>
+									<input type="number" id="numberOfItems" class="form-control" value="4" min="1" />
+									<button type="button" id="updateButton" class="btn btn-secondary mt-2">Update</button>
+								</div>
+								<div id="dynamicFields">
+									
+								</div>
+								<div class="form-group">
+									<input type="submit" value="Create" class="btn btn-primary" />
+								</div>
 							</form>
 						</div>
 					</div>
 				</div>
 			</div>
-
+			<div>
+				<a asp-action="Index">Back to List</a>
+			</div>
 		</div>
 	</div>
-	<!-- /page content -->
+
 
 }
-
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
 }
 @section javaLib {
 	@{
-		await Html.RenderPartialAsync("javaLib");
 		await Html.RenderPartialAsync("javascript_libs2");
-		
-
 	}
+	@{
+		await Html.RenderPartialAsync("javaLib");
+	}
+	<!-- Link the JavaScript file -->
+	<script src="~/js/dynamic-question-form.js"></script>
 }
+

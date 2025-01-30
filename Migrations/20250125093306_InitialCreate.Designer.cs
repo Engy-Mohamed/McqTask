@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace McqTask.Migrations
 {
     [DbContext(typeof(ExamContext))]
-    [Migration("20250124215849_InitialCreate")]
+    [Migration("20250125093306_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -86,6 +86,11 @@ namespace McqTask.Migrations
                     b.HasData(
                         new
                         {
+                            Id = 2,
+                            Name = "Default"
+                        },
+                        new
+                        {
                             Id = 1,
                             Name = "Default"
                         });
@@ -157,9 +162,8 @@ namespace McqTask.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

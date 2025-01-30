@@ -20,7 +20,7 @@ namespace McqTask.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddQuestion(Question question, int examId, string questionType, List<string> options, List<int> correctOptionIndices)
+        public IActionResult AddQuestion(Question question, int examId, QuestionType questionType, List<string> options, List<int> correctOptionIndices)
         {
             // Find the exam by ID
             var exam = _context.Exams.Include(e => e.Questions).FirstOrDefault(e => e.Id == examId);
@@ -36,7 +36,7 @@ namespace McqTask.Controllers
             question.Options = options.Select((o, index) => new Option
             {
                 Text = o,
-                IsCorrect = questionType == "Multiple"
+                IsCorrect = questionType == QuestionType.MultipleResponse
                     ? correctOptionIndices.Contains(index)
                     : correctOptionIndices.Contains(index) && correctOptionIndices.Count == 1
             }).ToList();

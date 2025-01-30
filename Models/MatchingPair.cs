@@ -7,7 +7,7 @@
         public int QuestionId { get; set; }
 
         // Navigation property for the related Question
-        public Question Question { get; set; }
+        public Question? Question { get; set; }
         public string LeftSideText { get; set; }
         public string RightSideText { get; set; }
     }
