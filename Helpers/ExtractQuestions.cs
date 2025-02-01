@@ -15,7 +15,7 @@ namespace McqTask.Helpers
     public static class ExtractQuestions
     {
         
-        public static (List<Question>, List<int> UnparsedQuestionNumbers) ExtractQuestionsFromPdf(string pdfPath)
+        public static (List<Question>, List<int> UnparsedQuestionNumbers) ExtractQuestionsFromPdf(string pdfPath, bool IsAnswerWithDot)
         {
             var questions = new List<Question>();
             var unparsedQuestionNumbers = new List<int>();
@@ -33,7 +33,7 @@ namespace McqTask.Helpers
 
                     {
                         
-                        var question = ParseQuestion2(text);
+                        var question = ParseQuestion(text, IsAnswerWithDot);
                         if (question != null)
                         {
                             questions.Add(question);
@@ -53,56 +53,28 @@ namespace McqTask.Helpers
             return (questions, unparsedQuestionNumbers);
         }
        
-        public static Question ParseQuestion(string pageText)
+       
+
+        public static Question ParseQuestion(string text, bool IsAnswerWithDot)
         {
-            var question = new Question();
-            question.Options = new List<Option>();
-
-
-            // Extract question using regex @"\d+\.\s(.*?)(?=\n[oO])" @"\d+\.\s(.*?)(?=\n[oO]\s)"  @"(?<=\d+\.\s)(.*?)(?=\?)"
-
-            string questionPattern = @"^\d+\s?\.(.*?\?)";//@"^\d+\.\s(.*?)(?=\?)"
-            Match questionMatch = Regex.Match(pageText, questionPattern, RegexOptions.Singleline);
-            question.Text = questionMatch.Success ? questionMatch.Groups[1].Value.Trim() : "Question not found";
-
-            // Extract options using regex  @"[oO]\s(.*?)(?=\n|$)" @"(?<=\n)[oO]\s(.*?)(?=\n|$)"
-
-
-            string optionsPattern = @"(?<=\n)[oO]\s+(.*?)(?=\n[oO]\s|ANS\.)";
-
-            MatchCollection optionsMatches = Regex.Matches(pageText, optionsPattern, RegexOptions.Singleline);
-
-            // Extract answer using regex
-            string answerPattern = @"ANS\.\s(.*)";// @"ANS\.\s(.*)";
-            Match answerMatch = Regex.Match(pageText, answerPattern, RegexOptions.Singleline);
-            string correctAnswer = answerMatch.Success ? answerMatch.Groups[1].Value.Trim() : "Answer not found";
-           // question.CorrectOptionId = -1;
-            for (int i = 0; i < optionsMatches.Count; i++)
-            {
-                string text = optionsMatches[i].Groups[1].Value.Trim();
-                //question.CorrectOptionId = (text == correctAnswer) ? i : -1;
-                question.Options.Add(new Option { Text = text });
-            }
-
-            return question;
-        }
-
-        public static Question ParseQuestion2(string text)
-        {
+         
+            string dot_pattern = "";
+            if (IsAnswerWithDot)
+                dot_pattern = @"\.";
             // Check for Matching Questions (e.g., "ANS. Trend analysis = Forecast performance based on results")
-            if (Regex.IsMatch(text, @"(?i)ANS\.\s*(.*?=.*?)", RegexOptions.Singleline))
+            if (Regex.IsMatch(text, @"(?i)ANS"+ dot_pattern + @"\s*(.*?=.*?)", RegexOptions.Singleline))
             {
-                var answermatch = Regex.Match(text, @"(?i)ANS\.\s(.*)", RegexOptions.Singleline);// @"^\d+\s?\.(.*?\?)"
+                var answermatch = Regex.Match(text, @"(?i)ANS"+ dot_pattern + @"\s(.*)", RegexOptions.Singleline);// @"^\d+\s?\.(.*?\?)"
                 var answer  = answermatch.Groups[1].Value.Trim();
                 if(IsShortAnswerFormat(answer.Replace("\n"," ").Replace(".","")))
-                    return ParseMatchingQuestion2(text);
-                return ParseMatchingQuestion(text);
+                    return ParseMatchingQuestion2(text, dot_pattern);
+                return ParseMatchingQuestion(text, dot_pattern);
             }
  
-            return ParseMultipleChoiceQuestion(text);
+            return ParseMultipleChoiceQuestion(text, dot_pattern);
         }
 
-        private static Question ParseMultipleChoiceQuestion(string text)
+        private static Question ParseMultipleChoiceQuestion(string text,string dot_pattern)
         {
             //var question = new Question { Type = "MultipleChoice" };
             var question = new Question ();
@@ -127,7 +99,7 @@ namespace McqTask.Helpers
             }
          
             // Extract options
-            var options = Regex.Matches(text, @"(?:^|(?<=\n))[oO]\s+(.*?)(?=\r?\n[oO]\s|\b(?i)ANS\.)", RegexOptions.Singleline);//;
+            var options = Regex.Matches(text, @"(?:^|(?<=\n))[oO]\s+(.*?)(?=\r?\n[oO]\s|\b(?i)ANS"+ dot_pattern + @")", RegexOptions.Singleline);//;
             question.Options = new List<Option>();
             foreach (Match option in options)
             {
@@ -140,7 +112,7 @@ namespace McqTask.Helpers
             }
 
             // Mark the correct answer
-            var answerMatch = Regex.Match(text, @"(?i)ANS\.\s(.*)", RegexOptions.Singleline);
+            var answerMatch = Regex.Match(text, @"(?i)ANS"+ dot_pattern + @"\s(.*)", RegexOptions.Singleline);
             var correctAnswersCount = 0;
 
             if (answerMatch.Success)
@@ -172,9 +144,9 @@ namespace McqTask.Helpers
                 return null;
             
             if (correctAnswersCount > 1)
-                question.Type = "Multiple Response";
+                question.Type = QuestionType.MultipleResponse;
             else if (correctAnswersCount == 1)
-                question.Type = "Multiple Choice";
+                question.Type = QuestionType.MultipleChoice;
             else
                 return null;
             if (NumAnswersNeeded == correctAnswersCount)
@@ -183,9 +155,9 @@ namespace McqTask.Helpers
                 return null;
         }
 
-        private static Question ParseMultipleResponseQuestion(string text)
+        private static Question ParseMultipleResponseQuestion(string text, string dot_pattern)
         {
-            var question = new Question { Type = "MultipleResponse" };
+            var question = new Question { Type = QuestionType.MultipleResponse};
 
             // Extract the question text
             var questionMatch = Regex.Match(text, @"^\d+\s?\.(.*?\?)", RegexOptions.Singleline);
@@ -197,7 +169,7 @@ namespace McqTask.Helpers
                 return null;
 
             // Extract options
-            var options = Regex.Matches(text, @"(?<=\n)[oO]\s+(.*?)(?=\n[oO]\s|ANS\.)", RegexOptions.Singleline);//;
+            var options = Regex.Matches(text, @"(?<=\n)[oO]\s+(.*?)(?=\n[oO]\s|ANS"+ dot_pattern + @")", RegexOptions.Singleline);//;
          
             question.Options = new List<Option>();
             foreach (Match option in options)
@@ -210,7 +182,7 @@ namespace McqTask.Helpers
             }
 
             // Mark the correct answers
-            var answersMatch = Regex.Match(text, @"(?:ANS\.|Ans\.)\s*(.*?)(?=\d+\..*|\t|$)", RegexOptions.Singleline);
+            var answersMatch = Regex.Match(text, @"(?:ANS"+ dot_pattern + @"|Ans"+ dot_pattern + @")\s*(.*?)(?=\d+\..*|\t|$)", RegexOptions.Singleline);
             if (answersMatch.Success)
             {
                 var answersText = answersMatch.Groups[1].Value;
@@ -233,9 +205,9 @@ namespace McqTask.Helpers
             return question;
         }
        
-        private static Question ParseMatchingQuestion(string text)
+        private static Question ParseMatchingQuestion(string text, string dot_pattern)
         {
-            var question = new Question { Type = "Matching" };
+            var question = new Question { Type = QuestionType.Matching };
             question.Text = "Match the scenario on the left with the action on the\r\nright.";
             question.MatchingPairs = new List<MatchingPair>();
 
@@ -256,7 +228,7 @@ namespace McqTask.Helpers
             return question;
         }
 
-        private static Question ParseMatchingQuestion2(string text)
+        private static Question ParseMatchingQuestion2(string text , string dot_pattern)
         {
    
             var questionRegex = new Regex(@"(?<Id>\d+)\.\s(?<Text>.+?)\n", RegexOptions.Singleline);
@@ -270,7 +242,7 @@ namespace McqTask.Helpers
                 {
                     Id = int.Parse(questionMatch.Groups["Id"].Value),
                     Text = questionMatch.Groups["Text"].Value.Trim(),
-                    Type = "Matching",
+                    Type = QuestionType.Matching,
                     Options = new List<Option>(),
                     MatchingPairs = new List<MatchingPair>()
                 };

@@ -22,6 +22,23 @@ namespace McqTask.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("McqTask.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("categories");
+                });
+
             modelBuilder.Entity("McqTask.Models.Exam", b =>
                 {
                     b.Property<int>("Id")
@@ -29,6 +46,9 @@ namespace McqTask.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -39,7 +59,38 @@ namespace McqTask.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("McqTask.Models.Group", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Groups");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 2,
+                            Name = "Default"
+                        },
+                        new
+                        {
+                            Id = 1,
+                            Name = "Default"
+                        });
                 });
 
             modelBuilder.Entity("McqTask.Models.MatchingPair", b =>
@@ -65,7 +116,7 @@ namespace McqTask.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("MatchingPair");
+                    b.ToTable("MatchingPairs");
                 });
 
             modelBuilder.Entity("McqTask.Models.Option", b =>
@@ -108,15 +159,40 @@ namespace McqTask.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ExamId");
 
                     b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("McqTask.Models.ResultRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("ResultRecords");
                 });
 
             modelBuilder.Entity("McqTask.Models.Student", b =>
@@ -130,7 +206,7 @@ namespace McqTask.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ExamId")
+                    b.Property<int>("GroupId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -144,9 +220,20 @@ namespace McqTask.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ExamId");
+                    b.HasIndex("GroupId");
 
                     b.ToTable("Students");
+                });
+
+            modelBuilder.Entity("McqTask.Models.Exam", b =>
+                {
+                    b.HasOne("McqTask.Models.Category", "Category")
+                        .WithMany("Exams")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("McqTask.Models.MatchingPair", b =>
@@ -182,17 +269,50 @@ namespace McqTask.Migrations
                     b.Navigation("Exam");
                 });
 
+            modelBuilder.Entity("McqTask.Models.ResultRecord", b =>
+                {
+                    b.HasOne("McqTask.Models.Exam", "Exam")
+                        .WithMany("ResultRecords")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("McqTask.Models.Student", "Student")
+                        .WithMany("ResultRecords")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("McqTask.Models.Student", b =>
                 {
-                    b.HasOne("McqTask.Models.Exam", null)
+                    b.HasOne("McqTask.Models.Group", "Group")
                         .WithMany("Students")
-                        .HasForeignKey("ExamId");
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("McqTask.Models.Category", b =>
+                {
+                    b.Navigation("Exams");
                 });
 
             modelBuilder.Entity("McqTask.Models.Exam", b =>
                 {
                     b.Navigation("Questions");
 
+                    b.Navigation("ResultRecords");
+                });
+
+            modelBuilder.Entity("McqTask.Models.Group", b =>
+                {
                     b.Navigation("Students");
                 });
 
@@ -201,6 +321,11 @@ namespace McqTask.Migrations
                     b.Navigation("MatchingPairs");
 
                     b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("McqTask.Models.Student", b =>
+                {
+                    b.Navigation("ResultRecords");
                 });
 #pragma warning restore 612, 618
         }

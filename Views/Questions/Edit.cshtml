@@ -1,0 +1,148 @@
+﻿@model McqTask.Models.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+@section Head {
+	@Html.Partial("head2")
+}
+@section content
+{
+	<div class="right_col" role="main">
+		<div class="">
+			<div class="page-title">
+				<div class="title_left">
+					<h3>Manage Questions</h3>
+				</div>
+
+				<div class="title_right">
+					<div class="col-md-5 col-sm-5  form-group pull-right top_search">
+						<div class="input-group">
+							<input type="text" class="form-control" placeholder="Search for...">
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button">Go!</button>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="clearfix"></div>
+			<div class="row">
+				<div class="col-md-12 col-sm-12 ">
+					<div class="x_panel">
+						<div class="x_title">
+
+							@Html.Partial("alert")
+							<h2>Edit Question</h2>
+							<ul class="nav navbar-right panel_toolbox">
+								<li>
+									<a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+								</li>
+								<li class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+									<ul class="dropdown-menu" role="menu">
+										<li>
+											<a class="dropdown-item" href="#">Settings 1</a>
+										</li>
+										<li>
+											<a class="dropdown-item" href="#">Settings 2</a>
+										</li>
+									</ul>
+								</li>
+								<li>
+									<a class="close-link"><i class="fa fa-close"></i></a>
+								</li>
+							</ul>
+							<div class="clearfix"></div>
+						</div>
+						<div class="x_content">
+							<br />
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+								<div class="form-group">
+									<label asp-for="ExamId" class="control-label"></label>
+									<select asp-for="ExamId" class="form-control" asp-items="ViewBag.ExamData"></select>
+									<span asp-validation-for="ExamId" class="text-danger"></span>
+								</div>
+            <div class="form-group">
+                <label asp-for="Text" class="control-label"></label>
+                <input asp-for="Text" class="form-control" />
+                <span asp-validation-for="Text" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Type" class="control-label"></label>
+                <input asp-for="Type" class="form-control" />
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+								<div id="dynamicFields">
+									<div id="dynamicFields">
+										@if (Model.Options != null && Model.Options.Count > 0)
+										{
+											<h4>Options</h4>
+											@for (int i = 0; i < Model.Options.Count; i++)
+											{
+												<div class="form-group">
+													<label>Option @(i + 1)</label>
+													<input type="@((Model.Type == QuestionType.MultipleChoice) ? "radio" : "checkbox")"
+														   name="options[@i].IsCorrect"
+														   value="true"
+													@(Model.Options[i].IsCorrect ? "checked" : "") />
+
+													<input type="text" name="options[@i].Text" class="form-control"
+														   value="@Model.Options[i].Text" required />
+												</div>
+											}
+										}
+
+										@if (Model.MatchingPairs != null && Model.MatchingPairs.Count > 0)
+										{
+											<h4>Matching Pairs</h4>
+											@for (int i = 0; i < Model.MatchingPairs.Count; i++)
+											{
+												<div class="form-group">
+													<label>Left Side @(i + 1)</label>
+													<input type="text" name="matchingPairs[@i].LeftSideText"
+														   class="form-control" value="@Model.MatchingPairs[i].LeftSideText" required />
+
+													<label>Right Side @(i + 1)</label>
+													<input type="text" name="matchingPairs[@i].RightSideText"
+														   class="form-control" value="@Model.MatchingPairs[i].RightSideText" required />
+												</div>
+											}
+										}
+									</div>
+
+								</div>
+      
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<a asp-action="Index">Back to List</a>
+			</div>
+		</div>
+	</div>
+
+
+}
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}
+@section javaLib {
+	@{
+		await Html.RenderPartialAsync("javascript_libs2");
+	}
+	@{
+		await Html.RenderPartialAsync("javaLib");
+	}
+	<!-- Link the JavaScript file -->
+	<script src="~/js/dynamic-question-form.js"></script>
+}

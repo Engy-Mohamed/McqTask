@@ -1,0 +1,45 @@
+<div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+    <div class="menu_section">
+        <h3>General</h3>
+        <ul class="nav side-menu">
+            <li>
+                <a><i class="fa fa-users"></i> Users <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                    <li><a href="@Url.Action("Create", "Users")">Add User</a></li>
+                    <li><a href="@Url.Action("Index", "Users")">Users List</a></li>
+                </ul>
+            </li>
+            <li>
+                <a><i class="fa fa-edit"></i> Categories <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                    <li><a href="@Url.Action("Create", "Categories")">Add Category</a></li>
+                    <li><a href="@Url.Action("Index", "Categories")">Categories List</a></li>
+                </ul>
+            </li>
+            <li>
+                <a><i class="fa fa-desktop"></i> Exams <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                    <li><a href="@Url.Action("Create", "Exams")">Add Exam</a></li>
+                    <li><a href="@Url.Action("Index", "Exams")">Exams List</a></li>
+                    <li><a href="@Url.Action("uploadfile", "admin")">Import Questions</a></li>
+                </ul>
+            </li>
+            <li>
+                <a><i class="fa fa-desktop"></i> Questions <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                    <li><a href="@Url.Action("Create", "Questions")">Add Question</a></li>
+                    <li><a href="@Url.Action("Index", "Questions")">Questions List</a></li>
+                </ul>
+            </li>
+            <li>
+                <a><i class="fa fa-desktop"></i> Students <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                    <li><a href="@Url.Action("Create", "Groups")">Add Group</a></li>
+                    <li><a href="@Url.Action("Index", "Groups")">Groups List</a></li>
+                    <li><a href="@Url.Action("Create", "Students")">Add Student</a></li>
+                    <li><a href="@Url.Action("Index", "Students")">Students List</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>

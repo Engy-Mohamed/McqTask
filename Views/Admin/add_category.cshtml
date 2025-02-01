@@ -1,0 +1,11 @@
+
+@section content{{
+    <div class="container my-5">
+        <h2>Add Category</h2>
+        <form asp-action="Store" asp-controller="Categories" method="post">
+            @Html.AntiForgeryToken()
+            <input type="text" name="category_name" placeholder="Category Name" />
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+}}

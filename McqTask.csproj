@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,6 +7,8 @@
     <StartupObject>McqTask.Program</StartupObject>
     <UserSecretsId>b50ff307-1484-4108-a00a-f8cb6d138274</UserSecretsId>
   </PropertyGroup>
+
+
 
   <ItemGroup>
     <PackageReference Include="itext" Version="9.0.0" />
@@ -20,7 +22,15 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="ServiceStack.Interfaces" Version="8.5.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\McqTask\" />
+    <Folder Include="Views\Shared\includes\" />
+  </ItemGroup>
+
+
 
 </Project>

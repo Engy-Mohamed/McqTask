@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using McqTask.Helpers;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace McqTask.Controllers
 {
@@ -20,7 +21,7 @@ namespace McqTask.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddQuestion(Question question, int examId, string questionType, List<string> options, List<int> correctOptionIndices)
+        public IActionResult AddQuestion(Question question, int examId, QuestionType questionType, List<string> options, List<int> correctOptionIndices)
         {
             // Find the exam by ID
             var exam = _context.Exams.Include(e => e.Questions).FirstOrDefault(e => e.Id == examId);
@@ -36,7 +37,7 @@ namespace McqTask.Controllers
             question.Options = options.Select((o, index) => new Option
             {
                 Text = o,
-                IsCorrect = questionType == "Multiple"
+                IsCorrect = questionType == QuestionType.MultipleResponse
                     ? correctOptionIndices.Contains(index)
                     : correctOptionIndices.Contains(index) && correctOptionIndices.Count == 1
             }).ToList();
@@ -48,81 +49,54 @@ namespace McqTask.Controllers
             return RedirectToAction("ManageExam", new { id = examId });
         }
 
-        public IActionResult AddExam()
-        {
-            return View();
-        }
+  
 
-        [HttpPost]
-        public IActionResult AddExam(Exam exam)
-        {
-            _context.Exams.Add(exam);
-            _context.SaveChanges();
 
-            return RedirectToAction("ManageExam", new { id = exam.Id });
-        }
 
-        public IActionResult ManageExam(int id)
-        {
-            var exam = _context.Exams
-                .Include(e => e.Questions)
-                .ThenInclude(q => q.Options)
-                .FirstOrDefault(e => e.Id == id);
 
-            if (exam == null)
-            {
-                return NotFound("Exam not found.");
-            }
-
-            return View(exam);
-        }
+ 
         
-        [HttpPost]
-        public IActionResult DeleteQuestion(int questionId, int examId)
-        {
-            var question = _context.Questions.FirstOrDefault(q => q.Id == questionId);
-            if (question != null)
-            {
-                _context.Questions.Remove(question);
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("ManageExam", new { id = examId });
-        }
+   
 
         [HttpGet]
         public IActionResult Uploadfile()
         {
+            ViewData["ExamData"] = new SelectList(_context.Exams, "Id", "Name");
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Upload(FileUpload model)
         {
-            var exam = new Exam();
-            exam.Name = "Exam 2";
-
-            if (model.UploadedFile != null && model.UploadedFile.Length > 0)
+            if (ModelState.IsValid)
             {
-                // Save the file temporarily (Optional)
-                string filePath = Path.GetTempFileName();
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                if (model.UploadedFile != null && model.UploadedFile.Length > 0)
                 {
-                    await model.UploadedFile.CopyToAsync(stream);
-                }
+                    ViewBag.ExamData = new SelectList(await _context.Exams.ToListAsync(), "Id", "Name");
+                    string filePath = Path.GetTempFileName();
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.UploadedFile.CopyToAsync(stream);
+                    }
 
-               ( List<Question> questions, List< int > UnparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromPdf(filePath);
-                exam.Questions = questions;
-                // Save to database
-                // _context.Questions.AddRange(questions);
-                _context.Exams.Add(exam);
-                await _context.SaveChangesAsync();
-                var fileupload = new FileUpload();
-                fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;
-            
-                return View("UploadFile", fileupload);
-                // 
-                //iewBag.Message = "File uploaded and questions saved successfully!";
+                    (List<Question> questions, List<int> UnparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromPdf(filePath, model.IsAnswerWithDot);
+                    foreach (var question in questions)
+                    {
+                        question.ExamId = model.ExamId; // Assign ExamId from the model
+                    }
+
+                    // Save to database
+                    
+                    _context.Questions.AddRange(questions);
+
+                    await _context.SaveChangesAsync();
+                    var fileupload = new FileUpload();
+                    fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;
+
+                    return View("UploadFile", fileupload);
+                    // 
+                    //iewBag.Message = "File uploaded and questions saved successfully!";
+                }
             }
             else
             {

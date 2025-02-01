@@ -1,29 +1,52 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - McqTask</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/McqTask.styles.css" asp-append-version="true" />
-</head>
-<body>
-    
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            All Rights Reserved &copy; 2024 - Egyptian Engineers Syndicate.
+<head>
+    @RenderSection("Head", required: true)
+</head>
+
+<body class="nav-md">
+        <div class="container body">
+            <div class="main_container">
+                <div class="col-md-3 left_col">
+                    <div class="left_col scroll-view">
+                        <div class="navbar nav_title" style="border: 0;">
+                            <a href="@Url.Action("Index", "Home")" class="site_title">
+                                <i class="fa fa-graduation-cap"></i>
+                                <span>Exam System Admin</span>
+                            </a>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <!-- menu profile quick info -->
+                        @await Html.PartialAsync("MenuProfileQuickInfo")
+                        <!-- /menu profile quick info -->
+
+                        <br/>
+
+                        <!-- sidebar menu -->
+                        @await Html.PartialAsync("SidebarMenu")
+                        <!-- /sidebar menu -->
+                        <!-- /menu footer buttons -->
+                        @await Html.PartialAsync("MenuFooterButtons")
+                        <!-- /menu footer buttons -->
+                    </div>
+                </div>
+
+                <!-- top navigation -->
+                @await Html.PartialAsync("TopNav")
+                <!-- /top navigation -->
+                @RenderSection("content", required: true)
+
+                <!-- footer content -->
+                @await Html.PartialAsync("footer")
+                <!-- /footer content -->
+            </div>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+  
+    @RenderSection("JavaLib", required: true)
+    @RenderSection("Scripts", required: false)
+
 </body>
 </html>

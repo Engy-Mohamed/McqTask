@@ -1,0 +1,15 @@
+@{
+
+    var alertType = "";
+    if (ViewBag.Message != null)
+    {
+        alertType = ViewBag.AlertType ?? "alert-info"; // Default to 'alert-info' if not set
+    }
+}
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert @alertType">
+        @ViewBag.Message
+    </div>
+}
