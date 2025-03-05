@@ -3,7 +3,6 @@ using McqTask.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-
 namespace McqTask
 {
     public class Program
@@ -11,50 +10,45 @@ namespace McqTask
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var environment = builder.Environment.EnvironmentName; // Get the current environment
+            // ✅ Use a single DB context
             builder.Services.AddDbContext<ExamContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("McqTaskContext") ?? throw new InvalidOperationException("Connection string 'McqTaskContext' not found.")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
-            // Add services to the container.
+            // ✅ Add Controllers and Views
             builder.Services.AddControllersWithViews();
-            builder.Services.AddDbContext<ExamContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            
+
+            // ✅ Add Session
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // ✅ Configure Error Handling
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
             else
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.Use(async (context, next) =>
-            {
-                var identity = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.Name, "Engy Mohamed"),
-                new Claim(ClaimTypes.Email, "engy.moh@example.com"),
-            }, "TestAuth");
 
-                context.User = new ClaimsPrincipal(identity);
-                await next.Invoke();
-            });
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
+            // ✅ Secure Authentication - Use Identity or JWT instead
             app.UseAuthorization();
             app.UseSession();
+
+            // ✅ Define Routes
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
