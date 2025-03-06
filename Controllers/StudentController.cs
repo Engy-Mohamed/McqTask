@@ -52,13 +52,13 @@ namespace McqTask.Controllers
         }
         [HttpPost]
         //public IActionResult NavigateQuestion(int? studentId, int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)
-        public IActionResult NavigateQuestion(int studentId, int direction,int question_no, [FromForm] IFormCollection form)
+        [HttpPost]
+        public IActionResult NavigateQuestion(int studentId, int direction, int question_no, [FromForm] IFormCollection form)
         {
             string studentIdString = Request.Form["studentId"];
-            Dictionary<int, Dictionary<int, int>>? matchingAnswers = new Dictionary<int, Dictionary<int, int>>();
+            Dictionary<int, Dictionary<int, int>> matchingAnswers = new Dictionary<int, Dictionary<int, int>>();
 
-            var matchingansers = form["matchingAnswers"];
-            Dictionary<int, List<int>>? answers = new Dictionary<int, List<int>>();
+            // Retrieve and parse matching answers
             foreach (var key in form.Keys.Where(k => k.StartsWith("matchingAnswers[")))
             {
                 var match = System.Text.RegularExpressions.Regex.Match(key, @"matchingAnswers\[(\d+)\]\[(\d+)\]");
@@ -76,75 +76,80 @@ namespace McqTask.Controllers
                 }
             }
 
-            foreach (var key in form.Keys)
+            // Retrieve and parse single-choice/multiple-choice answers
+            Dictionary<int, List<int>> answers = new Dictionary<int, List<int>>();
+            foreach (var key in form.Keys.Where(k => k.StartsWith("answers[")))
             {
-                if (key.StartsWith("answers["))
+                var match = Regex.Match(key, @"answers\[(\d+)\]");
+                if (match.Success)
                 {
-                    var match = Regex.Match(key, @"answers\[(\d+)\]");
-                    if (match.Success)
+                    int outerKey = int.Parse(match.Groups[1].Value);
+                    int value = int.Parse(form[key]);
+                    if (!answers.ContainsKey(outerKey))
                     {
-                        int outerKey = int.Parse(match.Groups[1].Value);
-                        int value = int.Parse(form[key]);
-                        if (!answers.ContainsKey(outerKey))
-                        {
-                            answers[outerKey] = new List<int>();
-                        }
-                        answers[outerKey].Add(value);
+                        answers[outerKey] = new List<int>();
                     }
+                    answers[outerKey].Add(value);
                 }
             }
-            // Getting value from hidden input field
 
-
-            if (int.TryParse(studentIdString, out int parsedStudentId))
+            if (!int.TryParse(studentIdString, out int parsedStudentId))
             {
-                ;
-            }
-            else
-            {
-                // Handle other types or error if needed
                 return BadRequest("Invalid Student ID format.");
             }
-          
+
             // Retrieve question IDs and current question index from the session
             var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
             var currentIndex = HttpContext.Session.GetInt32("CurrentQuestion") ?? 0;
 
-            // Load existing answers from the session or initialize a new dictionary
+            // Load existing answers from the session
             var answersDict = HttpContext.Session.GetString("ExamAnswers") != null
                 ? JsonSerializer.Deserialize<Dictionary<int, List<int>>>(HttpContext.Session.GetString("ExamAnswers"))
                 : new Dictionary<int, List<int>>();
+
             var MatchingAnswersDict = HttpContext.Session.GetString("ExamMatchingAnswers") != null
                 ? JsonSerializer.Deserialize<Dictionary<int, Dictionary<int, int>>>(HttpContext.Session.GetString("ExamMatchingAnswers"))
                 : new Dictionary<int, Dictionary<int, int>>();
 
-            // Save current answers if provided
-            if (answers != null && answers.Any())
+            // Retrieve and update flagged questions
+            var flaggedQuestions = HttpContext.Session.GetString("FlaggedQuestions") != null
+                ? JsonSerializer.Deserialize<HashSet<int>>(HttpContext.Session.GetString("FlaggedQuestions"))
+                : new HashSet<int>();
+
+            var flaggedQuestionsInput = form["flaggedQuestions"].ToString(); // Convert StringValues to string
+            if (!string.IsNullOrEmpty(flaggedQuestionsInput))
+            {
+                flaggedQuestions = flaggedQuestionsInput.Split(',')
+                    .Select(q => int.TryParse(q, out int qId) ? qId : (int?)null)
+                    .Where(qId => qId.HasValue)
+                    .Select(qId => qId.Value)
+                    .ToHashSet();
+
+                HttpContext.Session.SetString("FlaggedQuestions", JsonSerializer.Serialize(flaggedQuestions));
+            }
+
+
+            // Save current answers
+            if (answers.Any())
             {
                 foreach (var answer in answers)
                 {
-                    answersDict[answer.Key] = answer.Value; // Add or update answers
+                    answersDict[answer.Key] = answer.Value;
                 }
                 HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(answersDict));
             }
-            if (matchingAnswers != null && matchingAnswers.Any())
+
+            if (matchingAnswers.Any())
             {
                 foreach (var matchingAnswer in matchingAnswers)
                 {
-                    MatchingAnswersDict[matchingAnswer.Key] = matchingAnswer.Value; // Add or update answers
+                    MatchingAnswersDict[matchingAnswer.Key] = matchingAnswer.Value;
                 }
                 HttpContext.Session.SetString("ExamMatchingAnswers", JsonSerializer.Serialize(MatchingAnswersDict));
             }
 
             // Update current question index based on direction
-            if (direction != null && direction !=0)
-            {
-                currentIndex += direction;
-            }
-            else
-            {
-                currentIndex = question_no-1;
-            }
+            currentIndex = (direction != 0) ? currentIndex + direction : question_no - 1;
             HttpContext.Session.SetInt32("CurrentQuestion", currentIndex);
 
             // Handle exam submission if the last question is reached
@@ -155,7 +160,8 @@ namespace McqTask.Controllers
 
             // Fetch the next question and its options
             var question = _context.Questions
-                .Include(q => q.Options).Include(q => q.MatchingPairs)
+                .Include(q => q.Options)
+                .Include(q => q.MatchingPairs)
                 .FirstOrDefault(q => q.Id == questionIds[currentIndex]);
 
             if (question == null)
@@ -167,6 +173,7 @@ namespace McqTask.Controllers
             ViewBag.StudentId = parsedStudentId;
             ViewBag.TotalQuestions = questionIds.Count;
             ViewBag.CurrentQuestion = currentIndex + 1;
+            ViewBag.FlaggedQuestions = flaggedQuestions;
 
             // Pass stored answers to the view for pre-selection
             ViewBag.SelectedAnswers = answersDict.ContainsKey(question.Id)
@@ -174,11 +181,13 @@ namespace McqTask.Controllers
                 : new Dictionary<int, List<int>> { { question.Id, new List<int>() } };
 
             ViewBag.SelectedMatchingAnswers = MatchingAnswersDict.ContainsKey(question.Id)
-                ? new Dictionary<int, Dictionary<int,int>> { { question.Id, MatchingAnswersDict[question.Id] } }
+                ? new Dictionary<int, Dictionary<int, int>> { { question.Id, MatchingAnswersDict[question.Id] } }
                 : new Dictionary<int, Dictionary<int, int>> { { question.Id, new Dictionary<int, int>() } };
 
             return View("TakeExam", question);
         }
+
+        
 
 
         public IActionResult SubmitExam(int? studentId)

@@ -49,6 +49,7 @@
                 
                 <div class="col-10" id="question-content">
                         <input type="hidden" name="studentId" value="@ViewBag.StudentId" />
+                        <input type="hidden" id="flaggedQuestionsInput" name="flaggedQuestions" value="@string.Join(",", ViewBag.FlaggedQuestions ?? new List<int>())" />
                         <!-- Flag Button for the Current Question -->
                         <button id="flag-button" class="btn btn-light position-absolute"
                                 style="top: 10px; right: 10px;" onclick="toggleFlag()" type="button">
@@ -224,11 +225,20 @@
     <script>
         function toggleFlag() {
             const flagIcon = document.getElementById("flag-icon");
-        const currentSrc = flagIcon.src.split('/').pop();  // Extract the image filename from the full URL
-        const isFlagged = currentSrc === "flag.png";
+            const questionId = flagIcon.getAttribute("data-question-id");
+            const flaggedInput = document.getElementById("flaggedQuestionsInput");
 
-        // Toggle between flagged and unflagged images
-        flagIcon.src = isFlagged ? "/images/unflag.png" : "/images/flag.png";
+            let flaggedQuestions = flaggedInput.value ? flaggedInput.value.split(',').map(Number) : [];
+            if (flaggedQuestions.includes(parseInt(questionId))) {
+                flaggedQuestions = flaggedQuestions.filter(id => id !== parseInt(questionId)); // Remove from flagged list
+                flagIcon.src = "/images/unflag.png"; // Update UI to unflagged
+          } else {
+                flaggedQuestions.push(parseInt(questionId)); // Add to flagged list
+                flagIcon.src = "/images/flag.png"; // Update UI to flagged
+                 }
+
+        flaggedInput.value = flaggedQuestions.join(','); // Update hidden input
+
         }
 </script>
     <style>
