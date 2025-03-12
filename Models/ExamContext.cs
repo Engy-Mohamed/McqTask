@@ -4,16 +4,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.AspNetCore.Identity;
+
+
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace McqTask.Models
 {
 
-    public class ExamContext : DbContext
+    public class ExamContext : IdentityDbContext<ApplicationUser>
     {
-        public ExamContext(DbContextOptions<ExamContext> options) : base(options)
-        {
-        }
+        public ExamContext(DbContextOptions<ExamContext> options) : base(options) { }
+        
 
         public DbSet<Category> Category { get; set; } = default!;
         public DbSet<Student> Students { get; set; }
@@ -26,8 +30,12 @@ namespace McqTask.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Group>().HasData(
-                 new Group { Id = 2, Name = "Default" });
+            modelBuilder.Entity<Group>().HasData(new Group { Id = 2, Name = "Default" });
+            // Seed Admin Role
+            modelBuilder.Entity<IdentityRole>().HasData(
+                new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },
+                new IdentityRole { Id = "2", Name = "ExamTaker", NormalizedName = "EXAMTAKER" }
+            );
 
             // Configure relationship between Group and Students
             modelBuilder.Entity<ResultRecord>()

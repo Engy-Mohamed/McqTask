@@ -34,7 +34,7 @@ namespace McqTask.Controllers
 
         public IActionResult TakeExam(int studentId)
         {
-            var numberOfQuestions = 5;
+            var numberOfQuestions = 150;
             //get matching pairs +options
             var allQuestions = _context.Questions.Include(q => q.Options).Include(q=>q.MatchingPairs).ToList();
             // Get 10 random questions
@@ -43,7 +43,26 @@ namespace McqTask.Controllers
             // Store questions in session
             HttpContext.Session.SetString("ExamQuestions", JsonSerializer.Serialize(randomQuestions.Select(q => q.Id)));
             HttpContext.Session.SetInt32("CurrentQuestion", 0);
+            // Ensure Exam Start Time is set once (to avoid resets on page refresh)
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("ExamStartTime")))
+            {
+                HttpContext.Session.SetString("ExamStartTime", DateTime.UtcNow.ToString("o")); // ISO format
+            }
 
+            // Ensure Exam Duration is set (default: 30 minutes)
+            if (!HttpContext.Session.GetInt32("ExamDuration").HasValue)
+            {
+                HttpContext.Session.SetInt32("ExamDuration", 30);
+            }
+            // Compute Exam End Time for ViewBag
+
+
+            // Fix: Parse ExamStartTime before calling ToUniversalTime()
+            DateTime parsedStartTime = DateTime.Parse(HttpContext.Session.GetString("ExamStartTime")).ToUniversalTime();
+            int examDuration = HttpContext.Session.GetInt32("ExamDuration").Value;
+           
+            DateTime examEndTime = parsedStartTime.AddMinutes(examDuration);
+            ViewBag.ExamEndTime = examEndTime.ToUniversalTime().ToString("o"); // ISO 8601 format
             ViewBag.StudentId = studentId;
             ViewBag.TotalQuestions = numberOfQuestions;
             ViewBag.CurrentQuestion = 1;
@@ -183,6 +202,12 @@ namespace McqTask.Controllers
             ViewBag.SelectedMatchingAnswers = MatchingAnswersDict.ContainsKey(question.Id)
                 ? new Dictionary<int, Dictionary<int, int>> { { question.Id, MatchingAnswersDict[question.Id] } }
                 : new Dictionary<int, Dictionary<int, int>> { { question.Id, new Dictionary<int, int>() } };
+            #region timer
+      
+        
+
+            ViewBag.ExamEndTime = DateTime.Parse(HttpContext.Session.GetString("ExamStartTime")).AddMinutes(HttpContext.Session.GetInt32("ExamDuration").Value);
+            #endregion
 
             return View("TakeExam", question);
         }

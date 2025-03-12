@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using McqTask.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,16 +17,28 @@ namespace McqTask
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
                     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
+            // ✅ Configure Identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ExamContext>()
+                .AddDefaultTokenProviders();
+
             // ✅ Add Controllers and Views
             builder.Services.AddControllersWithViews();
 
-            // ✅ Add Session
-            builder.Services.AddSession(options =>
+            // ✅ Add Authentication Middleware
+            builder.Services.ConfigureApplicationCookie(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
+                options.LoginPath = "/Account/Login";
+                options.AccessDeniedPath = "/Account/AccessDenied";
             });
+
+            // ✅ Add Session
+            //builder.Services.AddSession(options =>
+            //{
+            //    options.IdleTimeout = TimeSpan.FromMinutes(30);
+            //    options.Cookie.HttpOnly = true;
+            //    options.Cookie.IsEssential = true;
+            //});
 
             var app = builder.Build();
 
@@ -44,9 +57,10 @@ namespace McqTask
             app.UseStaticFiles();
             app.UseRouting();
 
-            // ✅ Secure Authentication - Use Identity or JWT instead
+            
+            // ✅ Enable Authentication and Authorization
+            app.UseAuthentication();
             app.UseAuthorization();
-            app.UseSession();
 
             // ✅ Define Routes
             app.MapControllerRoute(
