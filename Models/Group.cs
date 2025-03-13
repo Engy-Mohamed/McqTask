@@ -8,5 +8,8 @@ namespace McqTask.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public ICollection<Student>? Students { get; set; }
+
+        // Many-to-Many Relationship with Exams
+        public ICollection<ExamGroup> ExamGroups { get; set; } = new List<ExamGroup>();
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace McqTask.Migrations
 {
     [DbContext(typeof(ExamContext))]
-    [Migration("20250312000828_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250313090827_initial-migration")]
+    partial class initialmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -132,6 +132,16 @@ namespace McqTask.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ExamCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ExamTime")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -141,6 +151,21 @@ namespace McqTask.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("McqTask.Models.ExamGroup", b =>
+                {
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ExamId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("ExamGroup");
                 });
 
             modelBuilder.Entity("McqTask.Models.Group", b =>
@@ -476,6 +501,25 @@ namespace McqTask.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("McqTask.Models.ExamGroup", b =>
+                {
+                    b.HasOne("McqTask.Models.Exam", "Exam")
+                        .WithMany("ExamGroups")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("McqTask.Models.Group", "Group")
+                        .WithMany("ExamGroups")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("McqTask.Models.MatchingPair", b =>
                 {
                     b.HasOne("McqTask.Models.Question", "Question")
@@ -606,6 +650,8 @@ namespace McqTask.Migrations
 
             modelBuilder.Entity("McqTask.Models.Exam", b =>
                 {
+                    b.Navigation("ExamGroups");
+
                     b.Navigation("Questions");
 
                     b.Navigation("ResultRecords");
@@ -613,6 +659,8 @@ namespace McqTask.Migrations
 
             modelBuilder.Entity("McqTask.Models.Group", b =>
                 {
+                    b.Navigation("ExamGroups");
+
                     b.Navigation("Students");
                 });
 

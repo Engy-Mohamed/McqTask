@@ -159,5 +159,18 @@ namespace McqTask.Controllers
         {
             return _context.Exams.Any(e => e.Id == id);
         }
+
+        public IActionResult GenerateExamLink(int examId)
+        {
+            var exam = _context.Exams.Find(examId);
+            if (exam == null || !exam.IsActive)
+            {
+                return NotFound("Exam not available.");
+            }
+
+            var examLink = $"{Request.Scheme}://{Request.Host}/Student/TakeExam?code={exam.ExamCode}";
+            return Ok(new { link = examLink });
+        }
+
     }
 }

@@ -1,8 +1,10 @@
 ﻿using McqTask.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -32,42 +34,75 @@ namespace McqTask.Controllers
             return RedirectToAction("TakeExam", new { studentId = student.Id });
         }
 
-        public IActionResult TakeExam(int studentId)
+        [Authorize(Roles = "Student")]
+        public IActionResult TakeExam(Guid examId)
         {
-            var numberOfQuestions = 150;
-            //get matching pairs +options
-            var allQuestions = _context.Questions.Include(q => q.Options).Include(q=>q.MatchingPairs).ToList();
-            // Get 10 random questions
-            var randomQuestions = allQuestions.OrderBy(q => Guid.NewGuid()).Take(numberOfQuestions).ToList();
 
-            // Store questions in session
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (studentId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var exam = _context.Exams
+                .Include(e => e.Questions)
+                .ThenInclude(q => q.Options)
+                .Include(e => e.Questions)
+                .ThenInclude(q => q.MatchingPairs)
+                .FirstOrDefault(e => e.ExamCode == examId.ToString());
+            if (exam == null || !exam.IsActive)
+            {
+                return NotFound("Exam not found or not active.");
+            }
+
+            // 🟢 Step 1: Check if session already contains exam data (restore previous session)
+            if (HttpContext.Session.GetString("ExamQuestions") != null &&
+                HttpContext.Session.GetInt32("CurrentQuestion") != null)
+            {
+                // Restore Exam Progress
+                var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
+                int currentIndex = HttpContext.Session.GetInt32("CurrentQuestion").Value;
+
+                ViewBag.ExamEndTime = HttpContext.Session.GetString("ExamEndTime");
+                ViewBag.StudentId = studentId;
+                ViewBag.TotalQuestions = questionIds.Count;
+                ViewBag.CurrentQuestion = currentIndex + 1;
+
+                // Get the next question
+                var currentQuestion = _context.Questions
+                    .Include(q => q.Options)
+                    .Include(q => q.MatchingPairs)
+                    .FirstOrDefault(q => q.Id == questionIds[currentIndex]);
+
+                return View(currentQuestion);
+            }
+
+            // 🔴 Step 2: If no previous session, start a new exam
+            int numberOfQuestions = Math.Min(150, exam.Questions.Count);
+            var randomQuestions = exam.Questions.OrderBy(q => Guid.NewGuid()).Take(numberOfQuestions).ToList();
+
             HttpContext.Session.SetString("ExamQuestions", JsonSerializer.Serialize(randomQuestions.Select(q => q.Id)));
             HttpContext.Session.SetInt32("CurrentQuestion", 0);
-            // Ensure Exam Start Time is set once (to avoid resets on page refresh)
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("ExamStartTime")))
-            {
-                HttpContext.Session.SetString("ExamStartTime", DateTime.UtcNow.ToString("o")); // ISO format
-            }
+            HttpContext.Session.SetString("ExamStartTime", DateTime.UtcNow.ToString("o"));
+            HttpContext.Session.SetInt32("ExamDuration", exam.ExamTime);
+            HttpContext.Session.SetString("FlaggedQuestions", JsonSerializer.Serialize(new HashSet<int>()));
+            HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(new Dictionary<int, List<int>>()));
+            HttpContext.Session.SetString("ExamMatchingAnswers", JsonSerializer.Serialize(new Dictionary<int, Dictionary<int, int>>()));
 
-            // Ensure Exam Duration is set (default: 30 minutes)
-            if (!HttpContext.Session.GetInt32("ExamDuration").HasValue)
-            {
-                HttpContext.Session.SetInt32("ExamDuration", 30);
-            }
-            // Compute Exam End Time for ViewBag
-
-
-            // Fix: Parse ExamStartTime before calling ToUniversalTime()
             DateTime parsedStartTime = DateTime.Parse(HttpContext.Session.GetString("ExamStartTime")).ToUniversalTime();
             int examDuration = HttpContext.Session.GetInt32("ExamDuration").Value;
-           
             DateTime examEndTime = parsedStartTime.AddMinutes(examDuration);
-            ViewBag.ExamEndTime = examEndTime.ToUniversalTime().ToString("o"); // ISO 8601 format
+
+            HttpContext.Session.SetString("ExamEndTime", examEndTime.ToUniversalTime().ToString("o"));
+
+            ViewBag.ExamEndTime = examEndTime.ToString("o");
             ViewBag.StudentId = studentId;
             ViewBag.TotalQuestions = numberOfQuestions;
             ViewBag.CurrentQuestion = 1;
 
             return View(randomQuestions.First());
+
         }
         [HttpPost]
         //public IActionResult NavigateQuestion(int? studentId, int direction, Dictionary<int, List<int>>? answers, Dictionary<int, Dictionary<int, int>>? matchingAnswers)

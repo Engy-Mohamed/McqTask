@@ -33,12 +33,12 @@ namespace McqTask
             });
 
             // ✅ Add Session
-            //builder.Services.AddSession(options =>
-            //{
-            //    options.IdleTimeout = TimeSpan.FromMinutes(30);
-            //    options.Cookie.HttpOnly = true;
-            //    options.Cookie.IsEssential = true;
-            //});
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(240);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
 
             var app = builder.Build();
 
@@ -57,10 +57,12 @@ namespace McqTask
             app.UseStaticFiles();
             app.UseRouting();
 
-            
+
             // ✅ Enable Authentication and Authorization
+            app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
+       
 
             // ✅ Define Routes
             app.MapControllerRoute(

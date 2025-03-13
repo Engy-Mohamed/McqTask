@@ -37,6 +37,18 @@ namespace McqTask.Models
                 new IdentityRole { Id = "2", Name = "ExamTaker", NormalizedName = "EXAMTAKER" }
             );
 
+            modelBuilder.Entity<ExamGroup>()
+        .HasKey(eg => new { eg.ExamId, eg.GroupId });
+
+            modelBuilder.Entity<ExamGroup>()
+                .HasOne(eg => eg.Exam)
+                .WithMany(e => e.ExamGroups)
+                .HasForeignKey(eg => eg.ExamId);
+
+            modelBuilder.Entity<ExamGroup>()
+                .HasOne(eg => eg.Group)
+                .WithMany(g => g.ExamGroups)
+                .HasForeignKey(eg => eg.GroupId);
             // Configure relationship between Group and Students
             modelBuilder.Entity<ResultRecord>()
                 .HasOne(q => q.Student)

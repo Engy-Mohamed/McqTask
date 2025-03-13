@@ -83,6 +83,19 @@
             @Html.DisplayFor(model => model.Category.Name)
         </dd>
     </dl>
+							<div class="mt-3">
+								<label>Exam Link:</label>
+								<input type="text" id="examLink" class="form-control" value="@Url.Action("TakeExam", "Student", new { code = Model.ExamCode }, Context.Request.Scheme)" readonly>
+
+								<div class="mt-2">
+									<button class="btn btn-primary" onclick="window.location.href = document.getElementById('examLink').value">
+										Enter Exam
+									</button>
+									<button class="btn btn-success" onclick="copyExamLink()">
+										Copy Link
+									</button>
+								</div>
+							</div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
