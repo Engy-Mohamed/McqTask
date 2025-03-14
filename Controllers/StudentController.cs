@@ -34,8 +34,8 @@ namespace McqTask.Controllers
             return RedirectToAction("TakeExam", new { studentId = student.Id });
         }
 
-        [Authorize(Roles = "Student")]
-        public IActionResult TakeExam(Guid examId)
+        [Authorize(Roles = "ExamTaker")]
+        public IActionResult TakeExam([FromQuery] Guid code)
         {
 
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -50,7 +50,7 @@ namespace McqTask.Controllers
                 .ThenInclude(q => q.Options)
                 .Include(e => e.Questions)
                 .ThenInclude(q => q.MatchingPairs)
-                .FirstOrDefault(e => e.ExamCode == examId.ToString());
+                .FirstOrDefault(e => e.ExamCode == code.ToString());
             if (exam == null || !exam.IsActive)
             {
                 return NotFound("Exam not found or not active.");
@@ -147,11 +147,11 @@ namespace McqTask.Controllers
                 }
             }
 
-            if (!int.TryParse(studentIdString, out int parsedStudentId))
+            if(string.IsNullOrWhiteSpace(studentIdString))
             {
                 return BadRequest("Invalid Student ID format.");
             }
-
+            
             // Retrieve question IDs and current question index from the session
             var questionIds = JsonSerializer.Deserialize<List<int>>(HttpContext.Session.GetString("ExamQuestions"));
             var currentIndex = HttpContext.Session.GetInt32("CurrentQuestion") ?? 0;
@@ -209,7 +209,7 @@ namespace McqTask.Controllers
             // Handle exam submission if the last question is reached
             if (currentIndex >= questionIds.Count)
             {
-                return SubmitExam(parsedStudentId);
+                return SubmitExam(studentIdString);
             }
 
             // Fetch the next question and its options
@@ -224,7 +224,7 @@ namespace McqTask.Controllers
             }
 
             // Set ViewBag properties for rendering
-            ViewBag.StudentId = parsedStudentId;
+            ViewBag.StudentId = studentIdString;
             ViewBag.TotalQuestions = questionIds.Count;
             ViewBag.CurrentQuestion = currentIndex + 1;
             ViewBag.FlaggedQuestions = flaggedQuestions;
@@ -250,7 +250,7 @@ namespace McqTask.Controllers
         
 
 
-        public IActionResult SubmitExam(int? studentId)
+        public IActionResult SubmitExam(string? studentId)
         {
             var answers = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(
                 HttpContext.Session.GetString("ExamAnswers") ?? "{}"
