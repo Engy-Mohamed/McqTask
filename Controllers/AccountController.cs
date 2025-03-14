@@ -27,8 +27,21 @@ namespace McqTask.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var usersInExamTakerRole = await _userManager.GetUsersInRoleAsync("ExamTaker");
-            return View(usersInExamTakerRole);
+            //var users = _userManager.Users.ToList(); // Get all users
+            var users = await _userManager.GetUsersInRoleAsync("ExamTaker");
+            return View(users);
+        }
+
+        public async Task<IActionResult> ListExamTakers()
+        {
+            var examTakers = await _userManager.GetUsersInRoleAsync("ExamTaker");
+            return View(examTakers);
+        }
+
+        public async Task<IActionResult> ListAdmins()
+        {
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            return View(admins);
         }
         public IActionResult Login()
         {
@@ -37,14 +50,20 @@ namespace McqTask.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, string returnUrl = null)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
                 var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
                 if (result.Succeeded)
+                {
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl); // ✅ Redirect to the original page
+                    }
                     return RedirectToAction("Index", "Home");
+                }
             }
 
             ViewBag.Error = "Invalid login attempt.";
@@ -57,7 +76,12 @@ namespace McqTask.Controllers
             return RedirectToAction("Login");
         }
 
-        public IActionResult Register() => View();
+        public IActionResult Register()
+        {
+            ViewBag.Roles = _roleManager.Roles.ToList();
+            ViewData["UseCustomLayout"] = true;
+            return View();
+        }
 
         public IActionResult Create()
         {
@@ -92,20 +116,28 @@ namespace McqTask.Controllers
             return View(user);
         }
 
+      
         [HttpPost]
         public async Task<IActionResult> Register(string fullName, string email, string password)
         {
-            var user = new ApplicationUser { UserName = email, Email = email, FullName = fullName };
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FullName = fullName
+            };
+
             var result = await _userManager.CreateAsync(user, password);
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "ExamTaker"); // Default role
+                await _userManager.AddToRoleAsync(user, "Admin"); // Assign the role
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
 
             ViewBag.Error = "Registration failed.";
+            ViewData["UseCustomLayout"] = true;
             return View();
         }
 

@@ -1,5 +1,6 @@
 ﻿using McqTask.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
@@ -13,26 +14,15 @@ namespace McqTask.Controllers
     public class StudentController : Controller
     {
         private readonly ExamContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public StudentController(ExamContext context)
+        public StudentController(ExamContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Register(Student student)
-        {
-            student.GroupId = 1;
-            _context.Students.Add(student);
-            _context.SaveChanges();
-
-            return RedirectToAction("TakeExam", new { studentId = student.Id });
-        }
+       
 
         [Authorize(Roles = "ExamTaker")]
         public IActionResult TakeExam([FromQuery] Guid code)
@@ -68,7 +58,9 @@ namespace McqTask.Controllers
                 ViewBag.StudentId = studentId;
                 ViewBag.TotalQuestions = questionIds.Count;
                 ViewBag.CurrentQuestion = currentIndex + 1;
-
+                ViewBag.ExamCode = HttpContext.Session.GetString("ExamCode");
+                ViewBag.ExamName = HttpContext.Session.GetString("ExamName");
+                
                 // Get the next question
                 var currentQuestion = _context.Questions
                     .Include(q => q.Options)
@@ -90,6 +82,11 @@ namespace McqTask.Controllers
             HttpContext.Session.SetString("ExamAnswers", JsonSerializer.Serialize(new Dictionary<int, List<int>>()));
             HttpContext.Session.SetString("ExamMatchingAnswers", JsonSerializer.Serialize(new Dictionary<int, Dictionary<int, int>>()));
 
+            // Save exam code and exam name in session
+            HttpContext.Session.SetString("ExamCode", exam.ExamCode);
+            HttpContext.Session.SetString("ExamName", exam.Name);
+            HttpContext.Session.SetInt32("ExamId", exam.Id);
+
             DateTime parsedStartTime = DateTime.Parse(HttpContext.Session.GetString("ExamStartTime")).ToUniversalTime();
             int examDuration = HttpContext.Session.GetInt32("ExamDuration").Value;
             DateTime examEndTime = parsedStartTime.AddMinutes(examDuration);
@@ -100,6 +97,7 @@ namespace McqTask.Controllers
             ViewBag.StudentId = studentId;
             ViewBag.TotalQuestions = numberOfQuestions;
             ViewBag.CurrentQuestion = 1;
+            ViewBag.ExamName = exam.Name;
 
             return View(randomQuestions.First());
 
@@ -244,14 +242,19 @@ namespace McqTask.Controllers
             ViewBag.ExamEndTime = DateTime.Parse(HttpContext.Session.GetString("ExamStartTime")).AddMinutes(HttpContext.Session.GetInt32("ExamDuration").Value);
             #endregion
 
+            ViewBag.ExamName = HttpContext.Session.GetString("ExamName");
+
             return View("TakeExam", question);
         }
 
         
 
 
-        public IActionResult SubmitExam(string? studentId)
+        public IActionResult SubmitExam(string studentId)
         {
+           
+            int? examId = HttpContext.Session.GetInt32("ExamId");
+
             var answers = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(
                 HttpContext.Session.GetString("ExamAnswers") ?? "{}"
             );
@@ -291,25 +294,52 @@ namespace McqTask.Controllers
                
             }
 
-            var student = _context.Students.Find(studentId);
+       
+            var student =  _userManager.Users.Include(u => u.ResultRecords).FirstOrDefaultAsync(u => u.Id == studentId);
             if (student != null)
             {
-                student.Score = score;
-                _context.SaveChanges();
+                var resultRecord = new ResultRecord
+                {
+                    StudentId = studentId,
+                    ExamId = examId?? 0,
+                    Score = score
+                };
+
+                _context.ResultRecords.Add(resultRecord);
+                 _context.SaveChangesAsync();
+
             }
 
             // Clear session
             HttpContext.Session.Clear();
 
-            return RedirectToAction("Result", new { studentId = studentId });
+            return RedirectToAction("Result", new { studentId = studentId ,ExamId=examId});
         }
 
         [HttpGet]
-        public IActionResult Result(int studentId)
+        public async Task<IActionResult> Result(string studentId, int examId)
         {
-            var student = _context.Students.Find(studentId);
-            return View(student);
+            var student = await _userManager.Users
+                .Include(u => u.ResultRecords)
+                .ThenInclude(r => r.Exam) // ✅ Ensure Exam is loaded
+                .FirstOrDefaultAsync(u => u.Id == studentId);
+
+            if (student == null)
+            {
+                return NotFound("Student not found.");
+            }
+
+            var resultRecord = student.ResultRecords?
+                .FirstOrDefault(r => r.ExamId == examId);
+
+            if (resultRecord == null)
+            {
+                return NotFound("Result not found for this exam.");
+            }
+            ViewData["UseCustomLayout"] = true;
+            return View(resultRecord);
         }
+
     }
 
 }

@@ -20,7 +20,6 @@ namespace McqTask.Models
         
 
         public DbSet<Category> Category { get; set; } = default!;
-        public DbSet<Student> Students { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Option> Options { get; set; }
         public DbSet<Exam> Exams { get; set; }
@@ -71,7 +70,7 @@ namespace McqTask.Models
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure relationship between Group and Students
-            modelBuilder.Entity<Student>()
+            modelBuilder.Entity<ApplicationUser>()
                 .HasOne(q => q.Group)
                 .WithMany(e => e.Students)
                 .HasForeignKey(q => q.GroupId)

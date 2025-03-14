@@ -22,6 +22,6 @@ namespace McqTask.Models
         public int? GroupId { get; set; } // Nullable because Admins don’t have Groups
         public virtual Group Group { get; set; } // Navigation property
 
-        public virtual ICollection<ResultRecord> ResultRecords { get; set; }
+        public virtual ICollection<ResultRecord> ResultRecords { get; set; } = new List<ResultRecord>(); // ✅ Initialize collection
     }
 }
