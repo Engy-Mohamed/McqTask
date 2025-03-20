@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using McqTask.Models;
+using McqTask.ViewModels;
 
 namespace McqTask.Controllers
 {
@@ -16,6 +17,34 @@ namespace McqTask.Controllers
         public ExamsController(ExamContext context)
         {
             _context = context;
+        }
+        public async Task<IActionResult> Edit(int id)
+        {
+            var exam = await _context.Exams
+                .Include(e => e.ExamGroups) // Load ExamGroups
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (exam == null)
+                return NotFound();
+
+            var viewModel = new ExamViewModel
+            {
+                Id = exam.Id,
+                Name = exam.Name,
+                Date = exam.Date,
+                CategoryId = exam.CategoryId,
+                EndDate = exam.EndDate,
+                IsActive = exam.IsActive,
+                IsPracticeMode = exam.IsPracticeMode,
+                IsPublic = exam.IsPublic,
+                ExamTime = exam.ExamTime,
+                ExamGroups = exam.ExamGroups.Select(g => g.GroupId).ToList() // Get selected groups
+            };
+
+            ViewBag.Groups = new SelectList(_context.Groups, "Id", "Name", viewModel.ExamGroups);
+            ViewData["Category"] = new SelectList(_context.Category, "Id", "Name", exam.CategoryId);
+
+            return View(viewModel);
         }
 
         // GET: Exams
@@ -34,8 +63,11 @@ namespace McqTask.Controllers
             }
 
             var exam = await _context.Exams
-                .Include(e => e.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+      .Include(e => e.Category) // Load Category
+      .Include(e => e.ExamGroups)
+          .ThenInclude(eg => eg.Group) // Load Group inside ExamGroups
+      .FirstOrDefaultAsync(m => m.Id == id);
+
             if (exam == null)
             {
                 return NotFound();
@@ -47,8 +79,10 @@ namespace McqTask.Controllers
         // GET: Exams/Create
         public IActionResult Create()
         {
+            ViewBag.Groups = new SelectList(_context.Groups, "Id", "Name");
             ViewData["Category"] = new SelectList(_context.Category, "Id", "Name");
-            return View();
+
+            return View(new ExamViewModel()); // Pass an empty model
         }
 
         // POST: Exams/Create
@@ -56,70 +90,82 @@ namespace McqTask.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Date,CategoryId")] Exam exam)
+        public async Task<IActionResult> Create(ExamViewModel model)
         {
             if (ModelState.IsValid)
             {
+                var exam = new Exam
+                {
+                    Name = model.Name,
+                    Date = model.Date,
+                    CategoryId = model.CategoryId,
+                    EndDate = model.EndDate,
+                    IsActive = model.IsActive,
+                    IsPracticeMode = model.IsPracticeMode,
+                    IsPublic = model.IsPublic,
+                    ExamTime = model.ExamTime,
+                    ExamGroups = model.ExamGroups.Select(groupId => new ExamGroup { GroupId = groupId }).ToList()
+                };
+
                 _context.Add(exam);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Category"] = new SelectList(_context.Category, "Id", "Name", exam.CategoryId);
-            return View(exam);
+
+            ViewBag.Groups = new SelectList(_context.Groups, "Id", "Name", model.ExamGroups);
+            ViewData["Category"] = new SelectList(_context.Category, "Id", "Name", model.CategoryId);
+
+            return View(model);
         }
+
+
 
         // GET: Exams/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ExamViewModel model)
         {
-            if (id == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                var exam = await _context.Exams
+                    .Include(e => e.ExamGroups)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (exam == null)
+                    return NotFound();
+
+                // Update exam details
+                exam.Name = model.Name;
+                exam.Date = model.Date;
+                exam.CategoryId = model.CategoryId;
+                exam.EndDate = model.EndDate;
+                exam.IsActive = model.IsActive;
+                exam.IsPracticeMode = model.IsPracticeMode;
+                exam.IsPublic = model.IsPublic;
+                exam.ExamTime = model.ExamTime;
+
+                // Clear old ExamGroups and add selected ones
+                exam.ExamGroups.Clear();
+                exam.ExamGroups = model.ExamGroups.Select(groupId => new ExamGroup { GroupId = groupId }).ToList();
+
+                _context.Update(exam);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
 
-            var exam = await _context.Exams.FindAsync(id);
-            if (exam == null)
-            {
-                return NotFound();
-            }
-            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", exam.Category);
-            return View(exam);
+            ViewBag.Groups = new SelectList(_context.Groups, "Id", "Name", model.ExamGroups);
+            ViewData["Category"] = new SelectList(_context.Category, "Id", "Name", model.CategoryId);
+
+            return View(model);
         }
+
+
 
         // POST: Exams/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Date,CategoryId")] Exam exam)
-        {
-            if (id != exam.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(exam);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ExamExists(exam.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Id", exam.CategoryId);
-            return View(exam);
-        }
+    
+      
 
         // GET: Exams/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -130,8 +176,11 @@ namespace McqTask.Controllers
             }
 
             var exam = await _context.Exams
-                .Include(e => e.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+     .Include(e => e.Category) // Load Category
+     .Include(e => e.ExamGroups)
+         .ThenInclude(eg => eg.Group) // Load Group inside ExamGroups
+     .FirstOrDefaultAsync(m => m.Id == id);
+
             if (exam == null)
             {
                 return NotFound();
@@ -159,5 +208,18 @@ namespace McqTask.Controllers
         {
             return _context.Exams.Any(e => e.Id == id);
         }
+
+        public IActionResult GenerateExamLink(int examId)
+        {
+            var exam = _context.Exams.Find(examId);
+            if (exam == null || !exam.IsActive)
+            {
+                return NotFound("Exam not available.");
+            }
+
+            var examLink = $"{Request.Scheme}://{Request.Host}/Student/TakeExam?code={exam.ExamCode}";
+            return Ok(new { link = examLink });
+        }
+
     }
 }

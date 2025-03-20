@@ -8,8 +8,6 @@
 }
 @section content
 {
-
-
     <!-- page content -->
     <div class="right_col" role="main">
         <div class="">
@@ -83,14 +81,14 @@
                 @Html.DisplayFor(modelItem => item.Category.Name)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+               <a asp-action="Edit" asp-route-id="@item.Id"><img src="~/admin/images/edit.png" alt="Edit"></a> 
              </td>
               <td>
-             <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                 <a asp-action="Delete" asp-route-id="@item.Id"><img src="~/admin/images/delete.png" alt="delete"></a>
                </td>
                  <td>
-                <a asp-action="Details" asp-route-id="@item.Id">View</a> |
-            </td>
+                  <a asp-action="Details" asp-route-id="@item.Id"><img src="~/admin/images/show.png" alt="view"></a>
+                    </td>
         </tr>
 }
     </tbody>

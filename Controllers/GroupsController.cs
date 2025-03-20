@@ -55,7 +55,7 @@ namespace McqTask.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Group @group)
         {
-            group.Students = new List<Student>();
+            group.Students = new List<ApplicationUser>();
 
             if (ModelState.IsValid)
             {

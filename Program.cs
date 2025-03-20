@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 using McqTask.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-
 
 namespace McqTask
 {
@@ -11,50 +11,68 @@ namespace McqTask
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddDbContext<ExamContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("McqTaskContext") ?? throw new InvalidOperationException("Connection string 'McqTaskContext' not found.")));
+            var environment = builder.Environment.EnvironmentName; // Get the current environment
 
-            // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            // ✅ Use DbContextFactory for other parts of the app (like Controllers)
+            builder.Services.AddDbContextFactory<ExamContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+
+            // ✅ Use AddDbContext for Identity (Required)
             builder.Services.AddDbContext<ExamContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+
+
+            // ✅ Configure Identity (This now works)
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ExamContext>() // This requires AddDbContext, not AddDbContextFactory
+                .AddDefaultTokenProviders();
+
+
+            // ✅ Add Controllers and Views
+            builder.Services.AddControllersWithViews();
+
+            // ✅ Add Authentication Middleware
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Account/Login";
+                options.AccessDeniedPath = "/Account/AccessDenied";
+            });
+
+            // ✅ Add Session
             builder.Services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.IdleTimeout = TimeSpan.FromMinutes(240);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // ✅ Configure Error Handling
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
             else
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.Use(async (context, next) =>
-            {
-                var identity = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.Name, "Engy Mohamed"),
-                new Claim(ClaimTypes.Email, "engy.moh@example.com"),
-            }, "TestAuth");
 
-                context.User = new ClaimsPrincipal(identity);
-                await next.Invoke();
-            });
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
-            app.UseAuthorization();
+
+            // ✅ Enable Authentication and Authorization
             app.UseSession();
+            app.UseAuthentication();
+            app.UseAuthorization();
+       
+
+            // ✅ Define Routes
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");

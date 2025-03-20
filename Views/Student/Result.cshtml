@@ -1,17 +1,16 @@
 ﻿@{
-    Layout = "~/Views/Shared/_Custom_layout.cshtml";
+    ViewData["UseCustomLayout"] = true;
 }
-@model McqTask.Models.Student
+@model McqTask.Models.ResultRecord
 
 <div class="container mt-5">
     <h2 class="mb-4">Exam Result</h2>
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Name: @Model.Name</h5>
-            <p class="card-text"><strong>Email:</strong> @Model.Email</p>
-            <p class="card-text"><strong>Phone:</strong> @Model.PhoneNumber</p>
+            <h5 class="card-title">Name: @Model.Student.FullName</h5>
+            <h5 class="card-title">Name: @Model.Exam.Name</h5>
             <p class="card-text"><strong>Score:</strong> @Model.Score</p>
         </div>
     </div>
     <a class="btn btn-primary mt-4" href="/">Back to Home</a>
-</div>
+    </di

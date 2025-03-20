@@ -108,20 +108,9 @@ namespace McqTask.Controllers
 
         }
 
-        public IActionResult ViewResults()
-        {
-            var students = _context.Students.ToList();
-            return View(students);
-        }
+  
 
-        public async Task<IActionResult> StudentResults()
-        {
-            // Retrieve all students and their scores
-            var students = await _context.Students
-                .ToListAsync();
-
-            return View(students);
-        }
+ 
 
         //todo: show all questions with their answers and the correct answer.
         public async Task<IActionResult> Questions()
