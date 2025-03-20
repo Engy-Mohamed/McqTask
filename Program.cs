@@ -12,15 +12,23 @@ namespace McqTask
         {
             var builder = WebApplication.CreateBuilder(args);
             var environment = builder.Environment.EnvironmentName; // Get the current environment
-            // ✅ Use a single DB context
+
+            // ✅ Use DbContextFactory for other parts of the app (like Controllers)
+            builder.Services.AddDbContextFactory<ExamContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+
+            // ✅ Use AddDbContext for Identity (Required)
             builder.Services.AddDbContext<ExamContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
                     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
-            // ✅ Configure Identity
+
+            // ✅ Configure Identity (This now works)
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ExamContext>()
+                .AddEntityFrameworkStores<ExamContext>() // This requires AddDbContext, not AddDbContextFactory
                 .AddDefaultTokenProviders();
+
 
             // ✅ Add Controllers and Views
             builder.Services.AddControllersWithViews();

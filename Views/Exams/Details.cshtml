@@ -76,26 +76,64 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Date)
         </dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.EndDate)
+		</dt>
+		<dd class="col-sm-10">
+		@Html.DisplayFor(model => model.EndDate)
+		</dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Category)
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Category.Name)
-        </dd>
-    </dl>
-							<div class="mt-3">
-								<label>Exam Link:</label>
-								<input type="text" id="examLink" class="form-control" value="@Url.Action("TakeExam", "Student", new { code = Model.ExamCode }, Context.Request.Scheme)" readonly>
+		</dd>
+		<dt class="col-sm-2">Exam Duration (Minutes)</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.ExamTime)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.IsPublic)
+		</dt>
+		<dd class="col-sm-10">
+			@(Model.IsPublic ? "Yes" : "No")
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.IsPracticeMode)
+		</dt>
+		<dd class="col-sm-10">
+			@(Model.IsPracticeMode ? "Yes" : "No")
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.IsActive)
+		</dt>
+		<dd class="col-sm-10">
+			@(Model.IsActive ? "Yes" : "No")
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.ExamGroups)
+		</dt>
 
-								<div class="mt-2">
-									<button class="btn btn-primary" onclick="window.location.href = document.getElementById('examLink').value">
-										Enter Exam
-									</button>
-									<button class="btn btn-success" onclick="copyExamLink()">
-										Copy Link
-									</button>
-								</div>
-							</div>
+		@foreach (var examGroup in Model.ExamGroups) // Fixed foreach loop
+		{
+			<dd class="col-sm-10">
+				@Html.DisplayFor(model => examGroup.Group.Name) <!-- Fixed DisplayFor usage -->
+			</dd>
+		}
+    </dl>
+		<div class="mt-3">
+			<label>Exam Link:</label>
+			<input type="text" id="examLink" class="form-control" value="@Url.Action("TakeExam", "Student", new { code = Model.ExamCode }, Context.Request.Scheme)" readonly>
+
+			<div class="mt-2">
+				<button class="btn btn-primary" onclick="window.location.href = document.getElementById('examLink').value">
+					Enter Exam
+				</button>
+				<button class="btn btn-success" onclick="copyExamLink()">
+					Copy Link
+				</button>
+			</div>
+		</div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>

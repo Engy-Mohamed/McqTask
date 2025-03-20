@@ -26,6 +26,7 @@ namespace McqTask.Models
         public DbSet<MatchingPair> MatchingPairs { get; set; }
         public DbSet<ResultRecord> ResultRecords { get; set; }
         public DbSet<Group> Groups { get; set; }
+        public DbSet<ExamProgress> ExamProgress { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -104,10 +105,21 @@ namespace McqTask.Models
                 new Group { Id = 1, Name = "Default" }
            
             );
+            modelBuilder.Entity<ExamProgress>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(p => p.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-     
+            modelBuilder.Entity<ExamProgress>()
+                .HasOne<Exam>()
+                .WithMany()
+                .HasForeignKey(p => p.ExamId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-  
+
+
+
         }
     }
 }

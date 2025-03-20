@@ -28,7 +28,7 @@
     
     <div class="card">
         <div class="card-body container-fluid">
-            <form asp-action="NavigateQuestion" method="post">
+            <form asp-action="NavigateQuestion" method="post" id="exam-form">
                 <div class="row">
                   
                     <div class="col-2 bg-light border-end" id="question-navigation" style="max-height: 400px; overflow-y: auto;">
@@ -185,16 +185,26 @@
         document.addEventListener("DOMContentLoaded", function () {
            var examEndTime = new Date("@ViewBag.ExamEndTime").getTime();
             var timerDisplay = document.getElementById("exam-timer");
+             var examForm = document.getElementById("exam-form");
 
             function updateTimer() {
                 var now = new Date().getTime();
                 var timeLeft = examEndTime - now;
 
                 if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    document.getElementById("exam-form").submit(); // Auto-submit exam
-                    return;
-                }
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your exam...");
+
+                // Add hidden input to mark it as a forced submission
+                let timeUpInput = document.createElement("input");
+                timeUpInput.type = "hidden";
+                timeUpInput.name = "timeUp";
+                timeUpInput.value = "true";
+                examForm.appendChild(timeUpInput);
+
+                examForm.submit(); // ✅ Force submit
+                return;
+            }
 
                 var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                 var seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
@@ -270,6 +280,28 @@
 
         }
 </script>
+    <script>
+        function autoSaveProgress() {
+            $.ajax({
+                url: "/Student/SaveProgress",
+                method: "POST",
+                data: {},
+                success: function (response) {
+                    console.log("Progress saved successfully.");
+                },
+                error: function (err) {
+                    console.log("Error saving progress.");
+                }
+            });
+        }
+
+        setInterval(autoSaveProgress, 60000); // Auto-save every 5 minutes
+    </script>
+    <script>
+        window.addEventListener("beforeunload", function (event) {
+            navigator.sendBeacon("/Student/SaveProgress");
+        });
+    </script>
     <style>
         /* Styling for draggable items */
         .draggable-item {
