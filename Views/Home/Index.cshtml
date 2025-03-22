@@ -1,16 +1,13 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+
 @section Head {
-    @Html.Partial("head") // Include the head partial
+    @Html.Partial("head") 
 }
 @section content {
 
-<div class="text-center">
-        <@{
-            ViewData["Title"] = "Dashboard";
-        }
-
+  <div class="right_col" role="main">
     <div class="row">
         <div class="col-md-4">
             <div class="card text-white bg-primary mb-3">
