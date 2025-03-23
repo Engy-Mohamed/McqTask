@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using McqTask.Helpers;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using ServiceStack;
 
 namespace McqTask.Controllers
 {
@@ -73,13 +74,35 @@ namespace McqTask.Controllers
                 if (model.UploadedFile != null && model.UploadedFile.Length > 0)
                 {
                     ViewBag.ExamData = new SelectList(await _context.Exams.ToListAsync(), "Id", "Name");
-                    string filePath = Path.GetTempFileName();
+                    
+                    //Get correct file extension
+                    string extension = Path.GetExtension(model.UploadedFile.FileName).ToLower();
+                    string tempDirectory = Path.GetTempPath(); // Get system temp directory
+
+                    // Ensure file is saved with the correct extension
+                    string filePath = Path.Combine(tempDirectory, Guid.NewGuid().ToString() + extension);
+                    
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await model.UploadedFile.CopyToAsync(stream);
                     }
 
-                    (List<Question> questions, List<int> UnparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromPdf(filePath, model.IsAnswerWithDot);
+                    List<Question> questions = new List<Question>();
+                    List<int> unparsedQuestionNumbers = new List<int>();
+
+                    if (model.FileType == "PDF")
+                    {
+                        (questions, unparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromPdf(filePath, model.IsAnswerWithDot);
+                    }
+                    else if (model.FileType == "Excel")
+                    {
+                        (questions, unparsedQuestionNumbers) = ExtractQuestions.ExtractQuestionsFromExcel(filePath);
+                    }
+                    else
+                    {
+                        ViewBag.Message = "Unsupported file type.";
+                        return RedirectToAction("Uploadfile");
+                    }
                     foreach (var question in questions)
                     {
                         question.ExamId = model.ExamId; // Assign ExamId from the model
@@ -91,7 +114,7 @@ namespace McqTask.Controllers
 
                     await _context.SaveChangesAsync();
                     var fileupload = new FileUpload();
-                    fileupload.UnparsedQuestionNumbers = UnparsedQuestionNumbers;
+                    fileupload.UnparsedQuestionNumbers = unparsedQuestionNumbers;
 
                     return View("UploadFile", fileupload);
                     // 

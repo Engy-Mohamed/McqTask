@@ -1,49 +1,63 @@
 ﻿@model FileUpload
-
 @{
     ViewBag.Title = "Upload File";
 }
+
 @section Head {
-    @Html.Partial("head") // Include the head partial
+    @{
+        await Html.RenderPartialAsync("head");
+    }
+    
 }
 @section content {
     <div class="right_col" role="main">
-<h2>Upload File</h2>
+        <h2>Upload File</h2>
 
-<form asp-action="Upload" asp-controller="Admin" method="post" enctype="multipart/form-data">
+        <form asp-action="Upload" asp-controller="Admin" method="post" enctype="multipart/form-data">
             <div class="form-group mb-3 row">
-                <label asp-for="ExamId" class="control-label" ></label>
+                <label asp-for="ExamId" class="control-label"></label>
                 <select asp-for="ExamId" class="form-control" asp-items="ViewBag.ExamData" required></select>
-     </div>
+            </div>
+
             <div class="form-group mb-3 row">
                 <label class="col-form-label col-md-3 col-sm-3 label-align">Is Answer With Dot</label>
-
-                <!-- Hidden field to ensure false is sent if checkbox is unchecked -->
-                <!-- <input type="hidden" asp-for="IsAnswerWithDot" value="false" />-->
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" asp-for="IsAnswerWithDot" class="form-control flat" />
                     </label>
                 </div>
             </div>
+
+            <!-- NEW: File Type Selection -->
             <div class="form-group mb-3 row">
-        <label for="file">Choose File</label>
-        <input type="file" name="UploadedFile" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Upload</button>
-</form>
-@if (Model != null && Model.UnparsedQuestionNumbers.Any())
-{
-    <h2>Unparsed Question Numbers</h2>
-    <ul>
-        @foreach (var questionNumber in Model.UnparsedQuestionNumbers)
+                <label for="FileType">Select File Type</label>
+                <select name="FileType" class="form-control" required>
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3 row">
+                <label for="file">Choose File</label>
+                <input type="file" name="UploadedFile" class="form-control" accept=".pdf, .xlsx" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        @if (Model != null && Model.UnparsedQuestionNumbers.Any())
         {
-            <li>Question Number: @questionNumber</li>
+            <h2>Unparsed Question Numbers</h2>
+            <ul>
+                @foreach (var questionNumber in Model.UnparsedQuestionNumbers)
+                {
+                    <li>Question Number: @questionNumber</li>
+                }
+            </ul>
         }
-    </ul>
-}
     </div>
 }
+
 @section javaLib {
     @{
         await Html.RenderPartialAsync("javascript_libs2");
