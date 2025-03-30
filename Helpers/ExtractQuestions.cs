@@ -9,12 +9,13 @@ using System.Text.RegularExpressions;
 using McqTask.Models;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using ServiceStack;
+using ClosedXML.Excel;
 
 namespace McqTask.Helpers
 {
     public static class ExtractQuestions
     {
-        
+       
         public static (List<Question>, List<int> UnparsedQuestionNumbers) ExtractQuestionsFromPdf(string pdfPath, bool IsAnswerWithDot)
         {
             var questions = new List<Question>();
@@ -52,8 +53,60 @@ namespace McqTask.Helpers
 
             return (questions, unparsedQuestionNumbers);
         }
-       
-       
+
+        public static (List<Question>, List<int> UnparsedQuestionNumbers) ExtractQuestionsFromExcel(string ExcelPath)
+        {
+            List<Question> questions = new List<Question>();
+            List<int> unparsedQuestions = new List<int>();
+
+            using (var workbook = new XLWorkbook(ExcelPath))
+            {
+                var worksheet = workbook.Worksheet(1);
+                var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Skip header
+
+                int questionNumber = 1;
+                foreach (var row in rows)
+                {
+                    try
+                    {
+                        string questionText = row.Cell(1).GetString().Trim();
+                        string questionTypeStr = row.Cell(2).GetString().Trim();
+                        string correctAnswer = row.Cell(9).GetString().Trim();
+                        if (!Enum.TryParse<QuestionType>(questionTypeStr, out var questionType))
+                        {
+                            throw new Exception($"Invalid QuestionType: {questionTypeStr}");
+                        }
+                        var question = new Question
+                        {
+                            Text = questionText,
+                            Type = questionType
+                        };
+
+                        for (int col = 3; col <= 8; col++)
+                        {
+                            string optionText = row.Cell(col).GetString().Trim();
+                            if (!string.IsNullOrEmpty(optionText))
+                            {
+                                question.Options.Add(new Option
+                                {
+                                    Text = optionText,
+                                    IsCorrect = correctAnswer.Contains(worksheet.Cell(1, col).GetString())
+                                });
+                            }
+                        }
+
+                        questions.Add(question);
+                    }
+                    catch (Exception)
+                    {
+                        unparsedQuestions.Add(questionNumber);
+                    }
+                    questionNumber++;
+                }
+            }
+
+            return (questions, unparsedQuestions);
+        }
 
         public static Question ParseQuestion(string text, bool IsAnswerWithDot)
         {
@@ -155,55 +208,7 @@ namespace McqTask.Helpers
                 return null;
         }
 
-        private static Question ParseMultipleResponseQuestion(string text, string dot_pattern)
-        {
-            var question = new Question { Type = QuestionType.MultipleResponse};
-
-            // Extract the question text
-            var questionMatch = Regex.Match(text, @"^\d+\s?\.(.*?\?)", RegexOptions.Singleline);
-            if (questionMatch.Success)
-            {
-                question.Text = questionMatch.Groups[1].Value.Trim();
-            }
-            else
-                return null;
-
-            // Extract options
-            var options = Regex.Matches(text, @"(?<=\n)[oO]\s+(.*?)(?=\n[oO]\s|ANS"+ dot_pattern + @")", RegexOptions.Singleline);//;
-         
-            question.Options = new List<Option>();
-            foreach (Match option in options)
-            {
-                question.Options.Add(new Option
-                {
-                    Text = option.Groups[1].Value.Trim(),
-                    IsCorrect = false // Default until we match the correct answers
-                });
-            }
-
-            // Mark the correct answers
-            var answersMatch = Regex.Match(text, @"(?:ANS"+ dot_pattern + @"|Ans"+ dot_pattern + @")\s*(.*?)(?=\d+\..*|\t|$)", RegexOptions.Singleline);
-            if (answersMatch.Success)
-            {
-                var answersText = answersMatch.Groups[1].Value;
-                var correctAnswers = Regex.Split(answersText, @"\s*(?=\d+\.)").Where(o => !string.IsNullOrWhiteSpace(o));
-
-                foreach (var correctAnswer in correctAnswers)
-                {
-                    foreach (var option in question.Options)
-                    {
-                        if (option.Text.Trim() == correctAnswer.Trim())
-                        {
-                            option.IsCorrect = true;
-                        }
-                    }
-                }
-            }
-            else
-                return null;
-
-            return question;
-        }
+       
        
         private static Question ParseMatchingQuestion(string text, string dot_pattern)
         {

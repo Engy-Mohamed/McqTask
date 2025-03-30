@@ -7,5 +7,8 @@
         public List<int> UnparsedQuestionNumbers { get; set; } = new List<int>();
         public bool IsAnswerWithDot { get; set; } // ✅ This is a property
 
+        // ✅ New Property: Tracks File Type
+        public string FileType { get; set; }
+
     }
 }

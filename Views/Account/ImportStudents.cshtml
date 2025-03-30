@@ -1,0 +1,51 @@
+﻿@model McqTask.ViewModels.ImportStudents
+@{
+    ViewBag.Title = "Import Student from Excel";
+}
+
+@section Head {
+    @{
+        await Html.RenderPartialAsync("head");
+    }
+
+}
+@section content {
+        <div class="right_col" role="main">
+            <h2>Upload File</h2>
+
+        <form asp-action="Importstudents" asp-controller="Account" method="post" enctype="multipart/form-data">
+                <div class="form-group mb-3 row">
+                    <label asp-for="GroupId" class="control-label"></label>
+                <select asp-for="GroupId" class="form-control" asp-items="ViewBag.GroupData" required></select>
+                </div>
+
+
+                <div class="form-group mb-3 row">
+                    <label for="file">Choose File</label>
+                    <input type="file" name="UploadedFile" class="form-control" accept=".xls, .xlsx" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+
+        @if (Model != null && Model.AlreadyExistsStudents.Any())
+        {
+            <h2>Already Exists Student Numbers</h2>
+                    <ul>
+                @foreach (var studentNumber in Model.AlreadyExistsStudents)
+                {
+                    <li>student  Number: @studentNumber</li>
+                }
+                    </ul>
+        }
+        </div>
+}
+
+@section javaLib {
+    @{
+        await Html.RenderPartialAsync("javascript_libs2");
+    }
+    @{
+        await Html.RenderPartialAsync("javaLib");
+    }
+}

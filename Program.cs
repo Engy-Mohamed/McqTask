@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using McqTask.Helpers;
 using McqTask.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,7 @@ namespace McqTask
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+            builder.Services.AddScoped<StudentService>();
 
             var app = builder.Build();
 

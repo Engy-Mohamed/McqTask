@@ -1,29 +1,102 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+
 @section Head {
-    @Html.Partial("head") // Include the head partial
+    @Html.Partial("head") 
 }
 @section content {
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <div class="button-container">
-        <button type="button">
-            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="uploadfile">Import Questions</a>
-        </button>
-        <button type="button">
-            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="StudentResults">Students Results</a>
-        </button>
-        <!-- New Button for Add Exam -->
-        <button type="button">
-            <a class="nav-link text-dark" asp-area="" asp-controller="admin" asp-action="AddExam">Add Exam</a>
-        </button>
+  <div class="right_col" role="main">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Exams</h5>
+                    <p class="card-text">@ViewBag.TotalExams</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Active Exams</h5>
+                    <p class="card-text">@ViewBag.ActiveExams</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Students</h5>
+                    <p class="card-text">@ViewBag.StudentCount</p>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Latest Exams</h4>
+            <table id="examTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Exam Name</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                        @foreach (var exam in ViewBag.ExamData)
+                        {
+                            <tr>
+                                <td>@exam.Name</td>
+                                <td>@exam.ExamTime</td>
+                            </tr>
+                        }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h4>Exam Distribution</h4>
+            <canvas id="examChart"></canvas>
+        </div>
+    </div>
+
 </div>
 }
 @section javaLib {
-    @Html.Partial("javaLib") // 
+   
+    @Html.Partial("javaLib") //
+    <script>
+        var ctx = document.getElementById('examChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Active Exams', 'Inactive Exams'],
+                datasets: [{
+                    label: 'Exam Stats',
+                    data: [@ViewBag.ActiveExams, @ViewBag.TotalExams - @ViewBag.ActiveExams],
+                    backgroundColor: ['green', 'red']
+                }]
+            }
+        });
+
+        $(document).ready(function () {
+            $('#examTable').DataTable();
+        });
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (typeof Chart !== "undefined" && Chart.defaults.plugins) {
+                Chart.defaults.plugins.legend = { display: false };
+            }
+        });
+    </script>
+
 }
 
 
