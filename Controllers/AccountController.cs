@@ -1,7 +1,12 @@
-﻿using McqTask.Models;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using McqTask.Helpers;
+using McqTask.Models;
+using McqTask.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -13,16 +18,19 @@ namespace McqTask.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ExamContext _context; // Added DbContext
+        private readonly StudentService _studentService;
 
         public AccountController(UserManager<ApplicationUser> userManager,
                                  SignInManager<ApplicationUser> signInManager,
                                  RoleManager<IdentityRole> roleManager,
-                                 ExamContext context)
+                                 ExamContext context,
+                                 StudentService studentService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _context = context;
+            _studentService = studentService;
         }
 
         public async Task<IActionResult> Index()
@@ -222,5 +230,78 @@ namespace McqTask.Controllers
 
             return View(user);
         }
+
+
+        // ============================ upload students ============================
+        [HttpGet]
+        public IActionResult Importstudents()
+        {
+            ViewData["GroupData"] = new SelectList(_context.Groups, "Id", "Name");
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Importstudents(ImportStudents model)
+        {
+            if (ModelState.IsValid)
+            {
+                if (model.UploadedFile != null && model.UploadedFile.Length > 0)
+                {
+                    ViewBag.GroupData = new SelectList(await _context.Groups.ToListAsync(), "Id", "Name");
+
+                    //Get correct file extension
+                    string extension = Path.GetExtension(model.UploadedFile.FileName).ToLower();
+                    string tempDirectory = Path.GetTempPath(); // Get system temp directory
+
+                    // Ensure file is saved with the correct extension
+                    string filePath = Path.Combine(tempDirectory, Guid.NewGuid().ToString() + extension);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.UploadedFile.CopyToAsync(stream);
+                    }
+
+                    var (newStudents, existingUsers) = await _studentService.ExtractStudentsFromExcel(filePath);
+
+                    foreach (var student in newStudents)
+                    {
+                        student.GroupId = model.GroupId; // Assign ExamId from the model
+                        var result = await _userManager.CreateAsync(student, "DefaultPassword123!");
+
+                        if (result.Succeeded)
+                        {
+                            if (!await _roleManager.RoleExistsAsync("ExamTaker"))
+                            {
+                                await _roleManager.CreateAsync(new IdentityRole("ExamTaker"));
+                            }
+                            await _userManager.AddToRoleAsync(student, "ExamTaker");
+                        }
+                    }
+
+                    // ✅ Fetch existing users and update their GroupId
+                    var existingStudents = await _userManager.Users.Where(u => existingUsers.Contains(u.Id)).ToListAsync();
+                    foreach (var student in existingStudents)
+                    {
+                        student.GroupId = model.GroupId; // Update GroupId
+                        await _userManager.UpdateAsync(student);
+                    }
+                    var importStudents = new ImportStudents();
+                    importStudents.AlreadyExistsStudents = existingUsers;
+
+                    return View("Importstudents", importStudents);
+                    // 
+                    //iewBag.Message = "File uploaded and questions saved successfully!";
+                }
+            }
+            else
+            {
+                ViewBag.Message = "Please upload a valid file.";
+            }
+            return RedirectToAction("Importstudents");
+
+
+
+        }
+
     }
 }
