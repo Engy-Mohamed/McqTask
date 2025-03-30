@@ -38,7 +38,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <h4>Latest Exams</h4>
             <table id="examTable" class="table table-striped">
                 <thead>
@@ -52,14 +52,36 @@
                         {
                             <tr>
                                 <td>@exam.Name</td>
-                                <td>@exam.ExamTime</td>
+                                <td>@exam.Date</td>
                             </tr>
                         }
                 </tbody>
             </table>
         </div>
-
-        <div class="col-md-6">
+        <div class="col-md-4">
+                <h4>Latest Exam Results</h4>
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">@ViewBag.LastExam</h5>
+                        <p class="card-text">
+                            @if (ViewBag.HighestScore != null)
+                            {
+                                <strong>Highest Score: @ViewBag.HighestScore</strong>
+                            }
+                            else
+                            {
+                                <span>No results available</span>
+                            }
+                        </p>
+                       
+                            <a href="@Url.Action("Index", "Results")" class="btn btn-dark">View All Results</a>
+                     
+                       
+                    </div>
+                    </div>
+            </div>
+           
+        <div class="col-md-4">
             <h4>Exam Distribution</h4>
             <canvas id="examChart"></canvas>
         </div>

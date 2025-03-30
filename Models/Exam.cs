@@ -20,6 +20,8 @@ namespace McqTask.Models
         public string ExamCode { get; set; } = Guid.NewGuid().ToString();
         public bool IsPracticeMode { get; set; } = false;
         // Many-to-Many Relationship with Groups
+
+        public int NumberOfTrails { get; set; }
         public ICollection<ExamGroup> ExamGroups { get; set; } = new List<ExamGroup>();
         public ICollection<Question>? Questions { get; set; }
         public ICollection<ResultRecord>? ResultRecords { get; set; }
