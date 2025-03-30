@@ -221,5 +221,56 @@ namespace McqTask.Controllers
             return Ok(new { link = examLink });
         }
 
+
+        [HttpPost]
+        public IActionResult CopyExam(int id, string newName)
+        {
+            var existingExam = _context.Exams
+                .Include(e => e.Questions)
+                    .ThenInclude(q => q.Options) // Ensure Options are loaded
+                .Include(e => e.Questions)
+                    .ThenInclude(q => q.MatchingPairs) // Ensure MatchingPairs are loaded
+                .FirstOrDefault(e => e.Id == id);
+
+            if (existingExam == null)
+            {
+                return NotFound();
+            }
+
+            // Create a new Exam object
+            var copiedExam = new Exam
+            {
+                Name = newName,
+                Date = DateTime.Now,
+                EndDate = existingExam.EndDate,
+                ExamTime = existingExam.ExamTime,
+                IsPublic = existingExam.IsPublic,
+                IsPracticeMode = existingExam.IsPracticeMode,
+                IsActive = existingExam.IsActive,
+                CategoryId = existingExam.CategoryId,
+                ExamGroups = existingExam.ExamGroups.ToList(), // Copy Exam Groups
+                Questions = existingExam.Questions.Select(q => new Question
+                {
+                    Text = q.Text,
+                    Type = q.Type,
+                    Options = q.Options?.Select(o => new Option // Copy options properly
+                    {
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToList(),
+                    MatchingPairs = q.MatchingPairs?.Select(mp => new MatchingPair // Copy matching pairs properly
+                    {
+                        LeftSideText = mp.LeftSideText,
+                        RightSideText = mp.RightSideText
+                    }).ToList()
+                }).ToList()
+            };
+
+            _context.Exams.Add(copiedExam);
+            _context.SaveChanges(); // Save changes to assign a new Id
+
+            return RedirectToAction("Details", new { id = copiedExam.Id });
+        }
+
     }
 }
