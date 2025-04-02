@@ -12,6 +12,7 @@
     {
         public int Id { get; set; }
         public string Text { get; set; }
+        public string ArabicText { get; set; }
         public QuestionType Type { get; set; } 
         public int ExamId { get; set; } // Foreign key to associate the question with an exam
         public Exam? Exam { get; set; } // Navigation property for the related Exam

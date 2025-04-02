@@ -31,7 +31,7 @@ namespace McqTask.Controllers
                 .Where(r => r.ExamId == id)
                 .Include(r => r.Student)
                 .Include(r => r.Exam)
-                // .OrderByDescending(r => r.AttemptDate)
+                .OrderByDescending(r => r.AttemptDate)
                 .ToListAsync();
 
             return View("index",results);

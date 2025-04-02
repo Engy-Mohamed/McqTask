@@ -8,5 +8,6 @@
         public int ExamId { get; set; } // Foreign key to associate the exam with a group
         public Exam Exam { get; set; } // Navigation property for the related Exam
         public ApplicationUser Student { get; set; } // Navigation property for the related Student
+        public DateTime AttemptDate { get; set; }
     }
 }

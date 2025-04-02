@@ -10,5 +10,7 @@
         public Question? Question { get; set; }
         public string LeftSideText { get; set; }
         public string RightSideText { get; set; }
+        public string ArabicLeftSideText { get; set; }
+        public string ArabicRightSideText { get; set; }
     }
 }
