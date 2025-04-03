@@ -49,6 +49,17 @@ namespace McqTask
                 options.Cookie.IsEssential = true;
             });
             builder.Services.AddScoped<StudentService>();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader();
+                    });
+            });
+
 
             var app = builder.Build();
 
@@ -68,6 +79,7 @@ namespace McqTask
             app.UseRouting();
 
 
+            app.UseCors("AllowAll");
             // ✅ Enable Authentication and Authorization
             app.UseSession();
             app.UseAuthentication();

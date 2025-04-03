@@ -1,0 +1,21 @@
+<h4 class="card-title mb-4">{{ question.text }}</h4>
+
+<div *ngIf="question.type === 'MultipleChoice'">
+  <div *ngFor="let option of question.options" class="form-check">
+    <input type="radio" class="form-check-input"
+           name="answer" [value]="option.id"
+           (change)="saveAnswer(option.id)"
+           [checked]="selectedAnswer === option.id" />
+    <label class="form-check-label">{{ option.text }}</label>
+  </div>
+</div>
+
+<div *ngIf="question.type === 'MultipleResponse'">
+  <div *ngFor="let option of question.options" class="form-check">
+    <input type="checkbox" class="form-check-input"
+           name="answers" [value]="option.id"
+           (change)="saveAnswer(option.id)"
+           [checked]="selectedAnswer?.includes(option.id)" />
+    <label class="form-check-label">{{ option.text }}</label>
+  </div>
+</div>

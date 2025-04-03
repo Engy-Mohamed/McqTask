@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\McqTask\" />
+    <Folder Include="AngularApp\" />
     <Folder Include="Views\Shared\includes\" />
   </ItemGroup>
 

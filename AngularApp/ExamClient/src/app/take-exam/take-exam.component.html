@@ -1,0 +1,38 @@
+<div class="container mt-5">
+  <app-exam-timer [examEndTime]="examEndTime"></app-exam-timer>
+
+  <div class="progress mb-4">
+    <div class="progress-bar"
+         role="progressbar"
+         [style.width]="(currentQuestionIndex + 1) * 100 / totalQuestions + '%'">
+      Question {{ currentQuestionIndex + 1 }} of {{ totalQuestions }}
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Navigation -->
+    <div class="col-2 bg-light border-end" style="max-height: 400px; overflow-y: auto;">
+      <button *ngFor="let q of questions; let i = index"
+              (click)="goToQuestion(i)"
+              class="btn btn-outline-primary w-100 my-1"
+              [ngClass]="{'btn-primary active': currentQuestionIndex === i}">
+        {{ i + 1 }}
+      </button>
+    </div>
+
+    <!-- Question Content -->
+    <div class="col-10">
+      <app-question-content [question]="questions[currentQuestionIndex]"></app-question-content>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between mt-4">
+    <button (click)="prevQuestion()" class="btn btn-secondary" *ngIf="currentQuestionIndex > 0">
+      Previous
+    </button>
+
+    <button (click)="nextQuestion()" class="btn btn-primary">
+      {{ currentQuestionIndex === totalQuestions - 1 ? 'Submit' : 'Next' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<div class="row">
+  <div class="col-md-5">
+    <h5>Left Side</h5>
+    <div cdkDropList [cdkDropListData]="leftSide" class="list-group"
+         (cdkDropListDropped)="drop($event)">
+      <div *ngFor="let item of leftSide" cdkDrag class="list-group-item">
+        {{ item.text }}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2 text-center">
+    <h5>Match</h5>
+  </div>
+
+  <div class="col-md-5">
+    <h5>Right Side</h5>
+    <div cdkDropList [cdkDropListData]="rightSide" class="list-group"
+         (cdkDropListDropped)="drop($event)">
+      <div *ngFor="let item of rightSide" cdkDrag class="list-group-item">
+        {{ item.text }}
+      </div>
+    </div>
+  </div>
+</div>
